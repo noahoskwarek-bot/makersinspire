@@ -1,5 +1,5 @@
 {
-  "_help": "The shop lineup. Add, edit or remove entries, then run python3 build.py. Set \"show\": false to take a piece out of the rotation without deleting it. There are no sold/sold-out states on purpose: favorites can be remade. stripe_link: paste the piece's Stripe Payment Link (https://buy.stripe.com/...) to show a Buy button; leave \"\" for an 'Ask about this piece' button. See README.md.",
+  "_help": "The shop lineup. See ADDING-PIECES.md for every field. Photos: put originals in photos/<slug>/ (optionally list them in images as {\"file\": \"1-front.jpg\", \"alt\": \"...\"}), then run python3 build.py. Set \"show\": false to take a piece out of the rotation without deleting it. There are no sold/sold-out states on purpose: favorites can be remade. stripe_link: paste the piece's Stripe Payment Link (https://buy.stripe.com/...) to show a Buy button; leave \"\" for an 'Ask about this piece' button.",
   "pieces": [
     {
       "slug": "placeholder-statement-necklace",

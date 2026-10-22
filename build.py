@@ -8,6 +8,7 @@ BUILD_DATE=YYYY-MM-DD pins the sitemap date (default: today). See README.md.
 """
 import datetime
 import html
+import io
 import json
 import os
 import re
@@ -33,15 +34,156 @@ def load_all():
     services = load('services.json')['services']
     slugs = [p['slug'] for p in pieces]
     assert len(set(slugs)) == len(slugs), 'duplicate piece slugs in pieces.json'
+    man = load_manifest()
     for i, p in enumerate(pieces):
         p['_pal'] = PALETTES[i % len(PALETTES)]
-        imgs = [dict(im, placeholder=False) for im in p.get('images', []) if im.get('src')]
+        entries = photo_entries(p)
+        n = len(entries)
+        imgs = []
+        for k, ent in enumerate(entries):
+            alt = (ent.get('alt') or '').strip() or f'{p["name"]}, photo {k + 1} of {n}'
+            if ent.get('file'):
+                m = man.get(f'{p["slug"]}/{ent["file"]}')
+                if not m:
+                    sys.exit(f'photo {p["slug"]}/{ent["file"]} has not been processed yet: run python3 build.py (without --check) where photos/ exists')
+                imgs.append(dict(m, alt=alt, placeholder=False, key=f'{p["slug"]}/{ent["file"]}'))
+            else:  # an already-hosted image path or URL, used as-is
+                imgs.append({'src': ent['src'], 'alt': alt, 'placeholder': False, 'w': ent.get('width'), 'h': ent.get('height')})
         if not imgs:
             n = max(1, int(p.get('placeholder_images') or 1))
-            imgs = [{'src': f'/images/placeholders/{p["slug"]}-{k + 1}.svg', 'placeholder': True,
+            imgs = [{'src': f'/images/placeholders/{p["slug"]}-{k + 1}.svg', 'placeholder': True, 'w': 800, 'h': 800,
                      'alt': f'Placeholder photo {k + 1} of {n} for {p["name"]}'} for k in range(n)]
         p['_imgs'] = imgs
     return site, pieces, services
+
+
+# ---------- real photos: photos/<slug>/<file> -> images/pieces/<slug>/<name>-<width>.webp/.jpg ----------
+PHOTO_DIR = os.path.join(ROOT, 'photos')            # originals (gitignored: they can carry GPS/EXIF and are large)
+OUT_DIR = os.path.join(ROOT, 'images', 'pieces')    # generated, committed, published
+MANIFEST = os.path.join(OUT_DIR, 'manifest.json')   # source hash + sizes, so builds work without the originals
+WIDTHS = (160, 320, 480, 800, 1200, 1600)  # 160/320 serve thumbnails and phone grid cards
+PHOTO_EXT = ('.jpg', '.jpeg', '.png', '.webp')
+
+
+def photo_entries(p):
+    """The piece's photos in order: pieces.json "images" if given, else every photo in photos/<slug>/ sorted by file name."""
+    listed = [im for im in p.get('images', []) if im.get('file') or im.get('src')]
+    if listed:
+        return listed
+    d = os.path.join(PHOTO_DIR, p['slug'])
+    if os.path.isdir(d):
+        return [{'file': f} for f in sorted(os.listdir(d), key=str.lower) if f.lower().endswith(PHOTO_EXT) and not f.startswith('.')]
+    man = load_manifest()  # originals not on this computer: fall back to what was processed before
+    return [{'file': k.split('/', 1)[1]} for k in sorted(man, key=str.lower) if k.startswith(p['slug'] + '/')]
+
+
+def load_manifest():
+    return json.load(open(MANIFEST, encoding='utf-8')) if os.path.exists(MANIFEST) else {}
+
+
+def photo_variants(slug, file, w, h):
+    stem = re.sub(r'[^a-z0-9]+', '-', os.path.splitext(file)[0].lower()).strip('-') or 'photo'
+    ws = sorted(set([x for x in WIDTHS if x < w] + [min(w, WIDTHS[-1])]))
+    return [(x, round(h * x / w), f'/images/pieces/{slug}/{stem}-{x}') for x in ws]
+
+
+def encode_photo(src, slug, file):
+    """Resize one original into every width as WebP + JPEG. EXIF/GPS and other metadata are dropped (the pixels are
+    re-encoded with no exif/xmp), orientation is applied first, and colours are converted to sRGB."""
+    from PIL import Image, ImageOps, ImageCms
+    im = Image.open(src)
+    im = ImageOps.exif_transpose(im)
+    icc = im.info.get('icc_profile')
+    if icc:
+        try:
+            im = ImageCms.profileToProfile(im, ImageCms.ImageCmsProfile(io.BytesIO(icc)), ImageCms.createProfile('sRGB'), outputMode='RGB')
+        except Exception:
+            pass
+    if im.mode not in ('RGB',):
+        bg = Image.new('RGB', im.size, (255, 255, 255))
+        im = im.convert('RGBA'); bg.paste(im, mask=im.split()[3]); im = bg
+    w, h = im.size
+    out = []
+    for x, y, base in photo_variants(slug, file, w, h):
+        r = im if x == w else im.resize((x, y), Image.LANCZOS)
+        path = os.path.join(ROOT, base.lstrip('/'))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        r.save(path + '.webp', 'WEBP', quality=80, method=6)
+        r.save(path + '.jpg', 'JPEG', quality=82, optimize=True, progressive=True)
+        out.append(base)
+    return w, h
+
+
+def process_photos(pieces_all, check):
+    """Make/refresh responsive images for every photo. Returns (manifest, stale list)."""
+    import hashlib
+    man, stale, want = load_manifest(), [], set()
+    for p in pieces_all:
+        for ent in photo_entries(p):
+            if not ent.get('file'):
+                continue
+            key = f'{p["slug"]}/{ent["file"]}'
+            want.add(key)
+            src = os.path.join(PHOTO_DIR, p['slug'], ent['file'])
+            if not os.path.exists(src):
+                if key not in man:
+                    sys.exit(f'missing photo: photos/{key}')
+                continue  # original not on this computer; keep the processed copy
+            sha = hashlib.sha1(open(src, 'rb').read()).hexdigest()
+            m = man.get(key)
+            if m and m['sha1'] == sha and m['bases'] == [b for _, _, b in photo_variants(p['slug'], ent['file'], m['w'], m['h'])] and all(os.path.exists(os.path.join(ROOT, b.lstrip('/') + ext)) for b in m['bases'] for ext in ('.webp', '.jpg')):
+                continue
+            if check:
+                stale.append(f'images/pieces/{key} (photo)'); continue
+            w, h = encode_photo(src, p['slug'], ent['file'])
+            man[key] = {'sha1': sha, 'w': w, 'h': h, 'bases': [b for _, _, b in photo_variants(p['slug'], ent['file'], w, h)]}
+            print('processed photo', key)
+    for k in [k for k in man if k not in want]:
+        if check:
+            stale.append(f'images/pieces/{k} (removed photo)'); continue
+        for b in man.pop(k)['bases']:
+            for ext in ('.webp', '.jpg'):
+                f = os.path.join(ROOT, b.lstrip('/') + ext)
+                if os.path.exists(f):
+                    os.remove(f)
+        print('removed photo', k)
+    if not check:
+        data = json.dumps(dict(sorted(man.items())), indent=1) + '\n'
+        if man or os.path.exists(MANIFEST):
+            os.makedirs(OUT_DIR, exist_ok=True)
+            if not os.path.exists(MANIFEST) or open(MANIFEST, encoding='utf-8').read() != data:
+                open(MANIFEST, 'w', encoding='utf-8').write(data)
+        for dirpath, dirs, names in os.walk(OUT_DIR, topdown=False):
+            if dirpath != OUT_DIR and not os.listdir(dirpath):
+                os.rmdir(dirpath)
+    return stale
+
+
+def img_html(im, sizes, eager=False, priority=False, cls=''):
+    """<picture> (WebP + JPEG srcset) for a processed photo, or a plain <img> for placeholders / hosted images.
+    width/height are always set so nothing shifts while loading; below-the-fold images are lazy."""
+    attrs = f' alt="{e(im["alt"])}"'
+    if im.get('w') and im.get('h'):
+        w = min(im['w'], WIDTHS[-1]) if 'bases' in im else im['w']  # the largest generated size (same shape as the original)
+        attrs += f' width="{w}" height="{round(im["h"] * w / im["w"])}"'
+    attrs += (' fetchpriority="high"' if priority else '') + ('' if eager else ' loading="lazy"') + ' decoding="async"'
+    attrs += f' class="{cls}"' if cls else ''
+    if 'bases' not in im:
+        return f'<img src="{e(im["src"])}"{attrs}>'
+    ws = [int(b.rsplit('-', 1)[1]) for b in im['bases']]
+    jpg = ', '.join(f'{b}.jpg {w}w' for b, w in zip(im['bases'], ws))
+    webp = ', '.join(f'{b}.webp {w}w' for b, w in zip(im['bases'], ws))
+    dflt = next((b for b, w in zip(im['bases'], ws) if w >= 800), im['bases'][-1])
+    return (f'<picture><source type="image/webp" srcset="{webp}" sizes="{sizes}">'
+            f'<img src="{dflt}.jpg" srcset="{jpg}" sizes="{sizes}"{attrs}></picture>')
+
+
+def full_src(im):
+    """Largest version for the lightbox: (jpg src, webp srcset)."""
+    if 'bases' not in im:
+        return im['src'], ''
+    ws = [int(b.rsplit('-', 1)[1]) for b in im['bases']]
+    return im['bases'][-1] + '.jpg', ', '.join(f'{b}.webp {w}w' for b, w in zip(im['bases'], ws))
 
 
 # ---------- placeholder images (clearly labelled) ----------
@@ -113,6 +255,20 @@ def webmanifest(site):
     }, indent=2) + '\n'
 
 
+_CSS = None
+
+
+def css():
+    """src/style.css, lightly minified and inlined into every page (it's small; this saves a render-blocking request)."""
+    global _CSS
+    if _CSS is None:
+        t = open(os.path.join(ROOT, 'src', 'style.css'), encoding='utf-8').read()
+        t = re.sub(r'/\*.*?\*/', '', t, flags=re.S)
+        t = re.sub(r'\s*\n\s*', '', t)
+        _CSS = t.strip()
+    return _CSS
+
+
 def page(site, path, title, desc, body, og_image='/images/og-logo.png', extra_head=''):
     url = site['base_url'] + path
     full_title = title if title == site['name'] else f'{title} · {site["name"]}'
@@ -146,23 +302,23 @@ def page(site, path, title, desc, body, og_image='/images/og-logo.png', extra_he
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
-  <link rel="stylesheet" href="/assets/style.css">{extra_head}
+  <style>{css()}</style>{extra_head}
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
   <header class="site-head">
     <a class="brand" href="/" aria-label="{e(site["name"])} home">{wordmark(site)}</a>
-    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav"><span class="bars" aria-hidden="true"></span>Menu</button>
     <nav id="site-nav" aria-label="Main"><ul>{nav}</ul></nav>
   </header>
-  <main id="main">
+  <main id="main" tabindex="-1">
 {body}
   </main>
   <footer class="site-foot">
     <div class="accent-bar" aria-hidden="true"></div>
     {foot_brand(site)}
     <p>One-of-a-kind artisan jewelry.</p>
-    <ul class="foot-nav">{nav}</ul>
+    <nav aria-label="Footer"><ul class="foot-nav">{nav.replace(' aria-current="page"', '')}</ul></nav>
     <p class="fine">© {BUILD_DATE[:4]} {e(site["name"])}</p>
   </footer>
   <script src="/assets/site.js" defer></script>
@@ -179,10 +335,14 @@ def materials(p):
     return ' · '.join(p.get('metals', []) + p.get('stones', []))
 
 
-def card(p, site):
+CARD_SIZES = '(min-width: 1120px) 347px, (min-width: 760px) calc((100vw - 76px) / 3), calc((100vw - 48px) / 2)'
+GALLERY_SIZES = '(min-width: 1120px) 580px, (min-width: 860px) 52vw, calc(100vw - 36px)'
+
+
+def card(p, site, eager=False, priority=False):
     im = p['_imgs'][0]
     return (f'<li class="card"><a href="/shop/{e(p["slug"])}/">'
-            f'<span class="card-img"><img src="{e(im["src"])}" alt="{e(im["alt"])}" width="800" height="800" loading="lazy" decoding="async"></span>'
+            f'<span class="card-img">{img_html(im, CARD_SIZES, eager, priority)}</span>'
             f'<span class="card-name">{e(p["name"])}</span>'
             f'<span class="card-meta">{e(materials(p))}</span>'
             f'<span class="card-price">{e(price(p, site))}</span></a>'
@@ -208,7 +368,7 @@ def home(site, pieces, services):
     </section>
     <section class="block">
       <div class="block-head"><h2>Current pieces</h2><a class="more" href="/shop/">View all</a></div>
-      <ul class="grid">{"".join(card(p, site) for p in feat)}</ul>
+      <ul class="grid">{"".join(card(p, site, eager=k < 2) for k, p in enumerate(feat))}</ul>
       <p class="note">The lineup changes over time, and favorites can be remade.</p>
     </section>
     <section class="block split">
@@ -236,7 +396,7 @@ def shop(site, pieces):
       <h1>Shop</h1>
       <p class="lede">A rotating lineup of one-of-a-kind pieces. Favorites can be remade, so if you love something, just ask.</p>
     </section>
-    <ul class="grid">{"".join(card(p, site) for p in pieces)}</ul>'''
+    <ul class="grid">{"".join(card(p, site, eager=k < 4, priority=k == 0) for k, p in enumerate(pieces))}</ul>'''
     return page(site, '/shop/', 'Shop', 'Shop one-of-a-kind artisan jewelry: statement pieces and everyday favorites in sterling silver, gold-filled and copper.', body)
 
 
@@ -263,24 +423,30 @@ def buy_box(p, site):
 
 def piece_page(site, p, pieces):
     imgs = p['_imgs']
-    slides = ''.join(
-        f'<li class="slide" id="{e(p["slug"])}-{k + 1}"><button type="button" class="zoom" data-full="{e(im["src"])}" data-alt="{e(im["alt"])}" aria-label="Enlarge photo {k + 1} of {len(imgs)}">'
-        f'<img src="{e(im["src"])}" alt="{e(im["alt"])}" width="800" height="800"{" loading=\"lazy\"" if k else ""} decoding="async"></button></li>'
-        for k, im in enumerate(imgs))
+    n = len(imgs)
+    slides = []
+    for k, im in enumerate(imgs):
+        full, full_set = full_src(im)
+        slides.append(
+            f'<div class="slide" id="{e(p["slug"])}-{k + 1}" role="group" aria-roledescription="slide" aria-label="{k + 1} of {n}">'
+            f'<button type="button" class="zoom" data-i="{k}" data-full="{e(full)}" data-srcset="{e(full_set)}" data-alt="{e(im["alt"])}" aria-haspopup="dialog">'
+            f'{img_html(im, GALLERY_SIZES, eager=k == 0, priority=k == 0)}<span class="sr-only">Enlarge photo {k + 1} of {n}</span></button></div>')
+    slides = ''.join(slides)
     thumbs = ''.join(
-        f'<li><a href="#{e(p["slug"])}-{k + 1}" data-go="{k}" aria-label="Show photo {k + 1}"><img src="{e(im["src"])}" alt="" width="120" height="120" loading="lazy"></a></li>'
-        for k, im in enumerate(imgs)) if len(imgs) > 1 else ''
+        f'<li><a href="#{e(p["slug"])}-{k + 1}" data-go="{k}"{" aria-current=\"true\"" if k == 0 else ""}><span class="sr-only">Show photo {k + 1} of {n}</span>'
+        f'{img_html(dict(im, alt=""), "64px", cls="thumb-img")}</a></li>'
+        for k, im in enumerate(imgs)) if n > 1 else ''
     dets = ''.join(f'<li>{e(d)}</li>' for d in p.get('details', []))
     others = [o for o in pieces if o is not p][:3]
     ph = any(im['placeholder'] for im in imgs)
     body = f'''    <nav class="crumbs" aria-label="Breadcrumb"><a href="/shop/">Shop</a> <span aria-hidden="true">›</span> {e(p["name"])}</nav>
     <article class="piece">
-      <div class="gallery" data-gallery>
-        <ul class="slides" tabindex="0" aria-label="Photos of {e(p["name"])}. Swipe or use the thumbnails.">{slides}</ul>
-        {f'<ul class="thumbs">{thumbs}</ul>' if thumbs else ''}
-        <p class="gal-hint">{"Swipe for more photos · " if len(imgs) > 1 else ""}Tap a photo to enlarge</p>
+      <section class="gallery" data-gallery aria-roledescription="carousel" aria-label="Photos of {e(p["name"])}">
+        <div class="slides" role="group" tabindex="0" aria-label="Photos of {e(p["name"])}. Swipe, use the arrow keys or the thumbnails.">{slides}</div>
+        {f'<ul class="thumbs" aria-label="Choose a photo">{thumbs}</ul>' if thumbs else ''}
+        <p class="gal-hint" aria-hidden="true">{"Swipe for more photos · " if n > 1 else ""}Tap a photo to enlarge</p>
         {f'<p class="ph">{ph_note("Placeholder photos")} Close-up photos of this piece go here.</p>' if ph else ''}
-      </div>
+      </section>
       <div class="piece-info">
         <p class="eyebrow">{e(p.get("style", ""))}</p>
         <h1>{e(p["name"])}</h1>
@@ -292,12 +458,22 @@ def piece_page(site, p, pieces):
         <p class="note">Each piece is one of a kind and handmade. Favorites can be remade, so the next one will be yours alone.</p>
       </div>
     </article>
-    <dialog class="lightbox" aria-label="Enlarged photo"><button type="button" class="lb-close" aria-label="Close">✕</button><img alt=""></dialog>
+    <dialog class="lightbox" aria-label="Enlarged photo">
+      <img alt="">
+      <p class="lb-count" aria-live="polite"></p>
+      <div class="lb-bar">{'<button type="button" class="lb-prev"><span aria-hidden="true">‹</span> Previous</button><button type="button" class="lb-next">Next <span aria-hidden="true">›</span></button>' if n > 1 else ''}<button type="button" class="lb-close">Close</button></div>
+    </dialog>
     <section class="block">
       <div class="block-head"><h2>More pieces</h2><a class="more" href="/shop/">View all</a></div>
       <ul class="grid">{"".join(card(o, site) for o in others)}</ul>
     </section>'''
-    og = imgs[0]['src'] if not imgs[0]['placeholder'] and imgs[0]['src'].lower().endswith(('.jpg', '.jpeg', '.png')) else '/images/og-logo.png'
+    first = imgs[0]
+    if 'bases' in first:
+        og = next((b for b in first['bases'] if int(b.rsplit('-', 1)[1]) >= 1200), first['bases'][-1]) + '.jpg'
+    elif not first['placeholder'] and first['src'].startswith('/') and first['src'].lower().endswith(('.jpg', '.jpeg', '.png')):
+        og = first['src']
+    else:
+        og = '/images/og-logo.png'
     return page(site, f'/shop/{p["slug"]}/', p['name'], f'{p["name"]}: one-of-a-kind artisan jewelry. {materials(p)}.', body, og_image=og)
 
 
@@ -308,7 +484,7 @@ def about(site):
       <p class="lede">Heirloom meets a night out.</p>
     </section>
     <div class="prose">
-      <figure class="portrait"><img src="/images/placeholders/portrait.svg" alt="Placeholder photo for a portrait of {m} at work" width="800" height="800"></figure>
+      <figure class="portrait"><img src="/images/placeholders/portrait.svg" alt="Placeholder photo for a portrait of {m} at work" width="800" height="800" fetchpriority="high"></figure>
       <p>Makers Inspire is one-of-a-kind artisan jewelry by {m}: mostly sterling silver and gold-filled, with gemstone beads and other stones, and now a little copper and stainless steel.</p>
       <p>The pieces are made for women who want to feel even more beautiful. Each one is unique and becomes yours, because jewelry carries emotion and memory. The look is sentimental and timeless, and also glamorous and fun.</p>
       <div class="ph-block">{ph_note()}<p>{m}'s story in her own words: how she started, why she makes jewelry, and what inspires each piece.</p></div>
@@ -349,9 +525,10 @@ def commissions(site):
       <p class="lede">A one-of-a-kind piece made around your idea, your favorite stone or metal, and the story behind it.</p>
     </section>
     {form_open(site, "commission", "Commission request")}
-      <div class="field"><label for="c-name">Your name</label><input id="c-name" name="name" data-label="Name" autocomplete="name" required></div>
-      <div class="field"><label for="c-email">Email</label><input id="c-email" name="email" data-label="Email" type="email" autocomplete="email" inputmode="email" required></div>
-      <div class="field"><label for="c-idea">Your idea</label><textarea id="c-idea" name="idea" data-label="Idea" rows="4" required placeholder="A necklace, earrings, a ring… anything you have in mind"></textarea></div>
+      <p class="form-note">Required fields are marked *</p>
+      <div class="field"><label for="c-name">Your name <span class="req" aria-hidden="true">*</span></label><input id="c-name" name="name" data-label="Name" autocomplete="name" required data-err="Please enter your name."></div>
+      <div class="field"><label for="c-email">Email <span class="req" aria-hidden="true">*</span></label><input id="c-email" name="email" data-label="Email" type="email" autocomplete="email" inputmode="email" required data-err="Please enter your email address." data-err-type="Please enter a valid email address, like name@example.com."></div>
+      <div class="field"><label for="c-idea">Your idea <span class="req" aria-hidden="true">*</span></label><textarea id="c-idea" name="idea" data-label="Idea" rows="4" required data-err="Please describe your idea." placeholder="A necklace, earrings, a ring… anything you have in mind"></textarea></div>
       <div class="field"><label for="c-material">Preferred stone or metal <span class="opt">(optional)</span></label><input id="c-material" name="stone_or_metal" data-label="Preferred stone or metal" placeholder="e.g. sterling silver with a favorite stone"></div>
       <div class="field"><label for="c-story">The story or occasion <span class="opt">(optional)</span></label><textarea id="c-story" name="story" data-label="Story or occasion" rows="4" placeholder="A birthday, an anniversary, a memory you want to keep close"></textarea></div>
       <button class="btn primary wide" type="submit">Send commission request</button>
@@ -390,10 +567,11 @@ def contact(site):
     </section>
     {"".join(direct)}
     {form_open(site, "contact", "Question from makersinspire.com")}
-      <div class="field"><label for="m-name">Your name</label><input id="m-name" name="name" data-label="Name" autocomplete="name" required></div>
-      <div class="field"><label for="m-email">Email</label><input id="m-email" name="email" data-label="Email" type="email" autocomplete="email" inputmode="email" required></div>
+      <p class="form-note">Required fields are marked *</p>
+      <div class="field"><label for="m-name">Your name <span class="req" aria-hidden="true">*</span></label><input id="m-name" name="name" data-label="Name" autocomplete="name" required data-err="Please enter your name."></div>
+      <div class="field"><label for="m-email">Email <span class="req" aria-hidden="true">*</span></label><input id="m-email" name="email" data-label="Email" type="email" autocomplete="email" inputmode="email" required data-err="Please enter your email address." data-err-type="Please enter a valid email address, like name@example.com."></div>
       <div class="field"><label for="m-piece">Piece <span class="opt">(optional)</span></label><input id="m-piece" name="piece" data-label="Piece" data-piece-field></div>
-      <div class="field"><label for="m-msg">Message</label><textarea id="m-msg" name="message" data-label="Message" rows="5" required></textarea></div>
+      <div class="field"><label for="m-msg">Message <span class="req" aria-hidden="true">*</span></label><textarea id="m-msg" name="message" data-label="Message" rows="5" required data-err="Please write your message."></textarea></div>
       <button class="btn primary wide" type="submit">Send message</button>
       {form_status(site)}
     </form>'''
@@ -431,7 +609,6 @@ def outputs():
         'commissions/index.html': commissions(site), 'services/index.html': services_page(site, services),
         'contact/index.html': contact(site), 'thanks/index.html': thanks(site), '404.html': not_found(site), 'sitemap.xml': sitemap(site, pieces),
         'robots.txt': f'User-agent: *\nAllow: /\n\nSitemap: {site["base_url"]}/sitemap.xml\n',
-        'assets/style.css': open(os.path.join(ROOT, 'src', 'style.css'), encoding='utf-8').read(),
         'assets/site.js': open(os.path.join(ROOT, 'src', 'site.js'), encoding='utf-8').read(),
         'images/placeholders/portrait.svg': placeholder_svg({'slug': 'portrait', '_pal': PALETTES[1]}, 0, 1).replace('<text x="400" y="112"', '<text display="none" x="400" y="112"'),
     }
@@ -448,8 +625,8 @@ def outputs():
 
 def main():
     check = '--check' in sys.argv
+    stale = process_photos(load('pieces.json')['pieces'], check)
     files, bins = outputs()
-    stale = []
     for rel, content in list(files.items()) + list(bins.items()):
         path = os.path.join(ROOT, rel)
         data = content if isinstance(content, bytes) else content.encode('utf-8')

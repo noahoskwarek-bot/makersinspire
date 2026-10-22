@@ -7,43 +7,32 @@ Static site for **Makers Inspire**, one-of-a-kind artisan jewelry. Hosted on Git
   - `site.json`: name, tagline, logo, price text, checkout, form endpoint, contact details.
   - `pieces.json`: the shop lineup (one entry per piece).
   - `services.json`: the Services section.
-  - `src/style.css`, `src/site.js`: styles and the small first-party script (copied to `assets/`).
+  - `src/style.css` (inlined into every page) and `src/site.js` (copied to `assets/`): styles and the small first-party script.
+  - `photos/<slug>/`: original piece photos (not published; see [ADDING-PIECES.md](ADDING-PIECES.md)).
 - **Build**: `python3 build.py`, then `python3 build.py --check` (must say "up to date"). Optional `BUILD_DATE=YYYY-MM-DD` pins the sitemap date.
 - **Commit and push** the data plus the generated files. Pages deploys in about a minute.
 
 Generated pages: `/`, `/shop/`, `/shop/<slug>/` (one per piece), `/about/`, `/commissions/`, `/services/`, `/contact/`, `/thanks/`, `404.html`, `sitemap.xml`, `robots.txt`, `site.webmanifest`, and placeholder images in `images/placeholders/`.
 
 ## Add a piece
-1. Put close-up photos in `images/pieces/<slug>/` (JPEG or WebP, about 1600 px on the long edge, square crops look best in the grid).
-2. Add an entry to `pieces.json`:
-   ```json
-   {
-     "slug": "rose-quartz-drop-necklace",
-     "name": "Rose Quartz Drop Necklace",
-     "style": "Statement",
-     "metals": ["Sterling silver"],
-     "stones": ["Rose quartz"],
-     "description": "A sentence or two in Erika's words.",
-     "details": ["Length: 18 in", "Lobster clasp"],
-     "price": 145,
-     "stripe_link": "",
-     "images": [
-       {"src": "/images/pieces/rose-quartz-drop-necklace/1.jpg", "alt": "Rose quartz drop necklace, close-up of the stone"},
-       {"src": "/images/pieces/rose-quartz-drop-necklace/2.jpg", "alt": "The necklace worn"}
-     ],
-     "featured": true,
-     "show": true
-   }
-   ```
-   - `slug`: lowercase, hyphens, unique. It becomes `/shop/<slug>/`.
-   - `price`: a number in USD, or `null` to show `site.json` → `price_display` ("Price TBD").
-   - `images`: any number of close-ups; the first is the grid photo. Write real alt text. With no images, numbered "Placeholder photo" SVGs are generated (`placeholder_images` sets how many).
-   - `featured`: the first three featured pieces appear on the home page.
-3. Run `python3 build.py && python3 build.py --check`, then commit and push.
+**See [ADDING-PIECES.md](ADDING-PIECES.md)**, the plain-English guide covering photos, every `pieces.json` field, alt text, Stripe links, rotation and publishing.
+
+In short: put the original photos in `photos/<slug>/`, add an entry to `pieces.json`, then run `python3 build.py && python3 build.py --check`, commit and push.
+
+## Photos and speed
+- `photos/` holds the originals and is **gitignored**: they're large and can carry GPS/EXIF, and anything in the repo is public on Pages. Keep a backup elsewhere.
+- `build.py` (with Pillow) turns each photo into `images/pieces/<slug>/<name>-<width>.webp` and `.jpg` at 160, 320, 480, 800, 1200 and 1600 px wide (never upscaled). It applies EXIF rotation, converts to sRGB and drops all metadata (EXIF, GPS, XMP).
+- `images/pieces/manifest.json` records each original's hash and size. A rebuild only re-encodes changed photos, and the site still builds on a computer without the originals. `--check` reports photos that need processing.
+- Markup is `<picture>` with a WebP `srcset` plus a JPEG fallback, `sizes`, and `width`/`height` (no layout shift).
+  - The first gallery photo and the first shop card get `fetchpriority="high"`.
+  - Above-the-fold cards load eagerly; everything else uses `loading="lazy"`.
+  - The lightbox loads the largest size.
+- CSS is inlined into each page (it's small), so there's no render-blocking stylesheet request.
+- `site.js` is the only script.
 
 ## Remove or rotate a piece
 - Take it out of the lineup: set `"show": false` (keeps the entry for later), or delete the entry.
-- The build removes that piece's page and placeholders automatically.
+- The build removes that piece's page and placeholders (and, for deleted photos, the web-size copies) automatically.
 - There are deliberately **no sold / sold-out states**: favorites can be remade.
 
 ## Checkout: Stripe Payment Links
@@ -72,7 +61,7 @@ Both forms are configured from `site.json`:
   Visible fields: name, email (FormSubmit uses it as reply-to), and idea / stone_or_metal / story (Commissions) or piece / message (Contact).
 - **FormSubmit activation:** the very first submission to a new FormSubmit address sends an activation email to makersinspirellc@gmail.com. Someone must click it before messages are delivered. Nothing has been submitted yet, so expect that email on the first real (or deliberate test) submission. After activation, FormSubmit can also provide a random-string endpoint that hides the address; paste it into `form_endpoint` and rebuild.
 - **`form_endpoint: null`** (fallback): submitting opens the visitor's email app with a prefilled message to `contact_email`. Subject as above; the body is the filled-in fields as labelled lines ("Name: …", "Email: …", "Idea: …", "Preferred stone or metal: …", "Story or occasion: …", "Piece: …", "Message: …"). A short note says the email app will open, with the address as a fallback.
-- Browser validation (required fields, email format) runs before either path.
+- Validation runs before either path: required fields are marked *, and errors appear under each field (linked with `aria-describedby`, `aria-invalid`), with focus moving to the first problem. Without JavaScript, the browser's own validation runs.
 - **`contact_email`**: `makersinspirellc@gmail.com` (provided by Noah). Shown on the Contact page as a mailto link, and under both forms as "Prefer email?". **`instagram`**: shown on the Contact page once set.
 
 ## Services
@@ -92,6 +81,14 @@ Noah's logo file is kept as `brand/logo-original.jpg`. `tools/make_brand.py` tra
 | `images/og-logo.png` | 1200x630 share image (og:image / twitter:image): logo centred on black with a thin stone-and-metal accent line. Piece pages use their own first photo once real photos exist. |
 
 The trace matches the original closely (letter shapes and spacing overlap ~99%). The silver is a measured linear gradient (#efefef → #989898). Alt text is "Makers Inspire". Set `logo` to `null` to go back to the text wordmark.
+
+## Accessibility
+The site is checked with axe-core (WCAG 2.2 A/AA plus best practices) and Lighthouse.
+- **Navigation:** skip link, landmarks (header, main navigation, main, footer navigation), and a 3px focus ring with a white halo.
+- **Menu:** the button reports open or closed (`aria-expanded`); Escape closes it and returns focus to the button.
+- **Gallery:** an arrow-key gallery with `aria-current` thumbnails.
+- **Lightbox:** a modal dialog with Previous/Next buttons, arrow keys, a live photo count and focus kept inside; Escape closes it and returns focus to the photo.
+- **Motion and touch:** reduced-motion is respected; tap targets are at least 44px; text and form-field borders meet AA contrast.
 
 ## Placeholders still to replace
 - Photos: generated SVGs marked "Placeholder photo".
