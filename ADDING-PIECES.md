@@ -6,7 +6,7 @@ All example values below are made up. Anything marked `EXAMPLE` is not a real pi
 
 ## Just email it
 
-Erika, you don't need to touch any files. Email new pieces to **pieces@makersinspire.com** from your usual email address. Only approved senders are accepted, so emails from other addresses are ignored.
+Erika, you don't need to touch any files. Email new pieces to **pieces@makersinspire.com** from **makersinspirellc@gmail.com**, and CC Noah at **noah@oskwarek.com**. Only approved senders are accepted, so emails from other addresses are ignored. Replies will CC Noah too.
 
 **To add a new piece**, put these in the email:
 - **Photos** as attachments: several close-ups. The first one is the main photo.
@@ -27,6 +27,7 @@ Here's a sample email. Everything in it is fake:
 
 ```
 To:      pieces@makersinspire.com
+CC:      noah@oskwarek.com
 Subject: New piece: EXAMPLE Sample Necklace
 
 Name: EXAMPLE Sample Necklace
@@ -165,7 +166,7 @@ git push
 GitHub Pages publishes about a minute after the push. If the build stops with a message such as `missing photo` or a JSON error, the message names the file. The usual cause is a missing comma or quote in `pieces.json`, or a photo name that doesn't match.
 
 ### Hand it over
-Prefer not to do any of that? Send Noah's assistant:
+Prefer not to do any of that? Email **pieces@makersinspire.com** from makersinspirellc@gmail.com, with Noah (noah@oskwarek.com) on CC. See [Just email it](#just-email-it). Send:
 - the photos (originals, in order), and
 - for each piece: name, metals, stones, description, details, price (or "TBD"), the Stripe link if there is one, a one-line description of each photo if you'd like to write the alt text yourself, and whether it should be featured on the home page.
 
