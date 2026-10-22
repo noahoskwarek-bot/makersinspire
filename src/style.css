@@ -148,3 +148,8 @@ input:focus,textarea:focus{outline:2px solid var(--ink);outline-offset:1px;borde
 .foot-nav a{color:var(--muted);display:inline-flex;min-height:44px;align-items:center;padding:0 8px}
 .fine{font-size:.78rem}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.direct{font-size:1.05rem;margin:-6px 0 22px}
+.direct a{font-weight:600;word-break:break-word}
+.form-alt{font-size:.88rem;color:var(--muted)}
+.form-alt a{word-break:break-word}

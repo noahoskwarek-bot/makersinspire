@@ -10,9 +10,10 @@
   "currency": "USD",
   "checkout_provider": "stripe_payment_links",
   "_checkout_help": "Checkout uses Stripe Payment Links: paste each piece's link (https://buy.stripe.com/...) into its stripe_link in pieces.json. Pieces without a link show an 'Ask about this piece' button that opens the contact form.",
-  "form_endpoint": null,
-  "_form_help": "POST endpoint for the commission + contact forms (e.g. a Formspree/Basin URL). null = forms show a friendly 'not connected yet' note on submit and send nothing.",
-  "contact_email": null,
-  "_contact_help": "Only set a confirmed address. null = no email is published.",
+  "form_endpoint": "https://formsubmit.co/makersinspirellc@gmail.com",
+  "form_captcha": true,
+  "_form_help": "POST endpoint for the commission + contact forms. Works with FormSubmit-style endpoints, e.g. \"https://formsubmit.co/<email>\" (sends _subject, _template=table, _captcha, _next=/thanks/ and the _honey honeypot). null = submitting opens the visitor's email app with a prefilled message to contact_email. form_captcha: false sends _captcha=false.",
+  "contact_email": "makersinspirellc@gmail.com",
+  "_contact_help": "Confirmed address (provided by Noah). Shown on the Contact page; also used by the forms' mailto fallback while form_endpoint is null.",
   "instagram": null
 }

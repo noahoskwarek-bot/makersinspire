@@ -48,12 +48,32 @@
     if (slug) pf.value = slug;
   }
 
-  // Forms not connected yet (site.json form_endpoint is null): never send, show a friendly note.
-  document.querySelectorAll('form[data-offline]').forEach(function (f) {
+  // Forms. With form_endpoint (site.json) the form POSTs there; for the contact form the subject names the piece.
+  // Without it (data-mailto): after the browser's own validation, open the visitor's email app with a prefilled message.
+  function subjectFor(f) {
+    var piece = f.querySelector('[name="piece"]');
+    var p = piece && piece.value.trim();
+    return f.getAttribute('data-kind') === 'contact' && p ? 'Question about ' + p : f.getAttribute('data-subject');
+  }
+  document.querySelectorAll('form.form').forEach(function (f) {
     f.addEventListener('submit', function (ev) {
+      var to = f.getAttribute('data-mailto');
+      if (to === null) {  // POST to the endpoint
+        var sub = f.querySelector('input[name="_subject"]');
+        if (sub) sub.value = subjectFor(f);
+        return;
+      }
       ev.preventDefault();
+      if (!to) return;
+      var lines = [];
+      f.querySelectorAll('[data-label]').forEach(function (el) {
+        var v = el.value.trim();
+        if (v) lines.push(el.getAttribute('data-label') + ': ' + v);
+      });
+      var href = 'mailto:' + to + '?subject=' + encodeURIComponent(subjectFor(f)) + '&body=' + encodeURIComponent(lines.join('\n'));
       var s = f.querySelector('.form-status');
-      if (s) { s.hidden = false; s.focus && s.setAttribute('tabindex', '-1'); s.focus && s.focus(); }
+      if (s) { s.hidden = false; s.focus(); }
+      window.location.href = href;
     });
   });
 })();

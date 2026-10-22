@@ -32,15 +32,14 @@
       <h1>Contact</h1>
       <p class="lede">Questions about a piece, buying, or a custom idea? Send a note.</p>
     </section>
-    <div class="ph-block"><span class="ph-tag">Placeholder</span><p>Direct contact details will be added here.</p></div>
-    <form class="form" action="#" method="POST" data-offline data-kind="contact">
-      <input type="hidden" name="_subject" value="New message from the website">
-      <div class="field"><label for="m-name">Your name</label><input id="m-name" name="name" autocomplete="name" required></div>
-      <div class="field"><label for="m-email">Email</label><input id="m-email" name="email" type="email" autocomplete="email" inputmode="email" required></div>
-      <div class="field"><label for="m-piece">Piece <span class="opt">(optional)</span></label><input id="m-piece" name="piece" data-piece-field></div>
-      <div class="field"><label for="m-msg">Message</label><textarea id="m-msg" name="message" rows="5" required></textarea></div>
+    <p class="direct">Email <a href="mailto:makersinspirellc@gmail.com">makersinspirellc@gmail.com</a></p>
+    <form class="form" action="https://formsubmit.co/makersinspirellc@gmail.com" method="POST" data-kind="contact" data-subject="Question from makersinspire.com"><input type="hidden" name="_subject" value="Question from makersinspire.com"><input type="hidden" name="_template" value="table"><input type="hidden" name="_captcha" value="true"><input type="hidden" name="_next" value="https://www.makersinspire.com/thanks/"><div class="hp" aria-hidden="true"><label for="contact-hp">Leave this field empty</label><input id="contact-hp" type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none"></div>
+      <div class="field"><label for="m-name">Your name</label><input id="m-name" name="name" data-label="Name" autocomplete="name" required></div>
+      <div class="field"><label for="m-email">Email</label><input id="m-email" name="email" data-label="Email" type="email" autocomplete="email" inputmode="email" required></div>
+      <div class="field"><label for="m-piece">Piece <span class="opt">(optional)</span></label><input id="m-piece" name="piece" data-label="Piece" data-piece-field></div>
+      <div class="field"><label for="m-msg">Message</label><textarea id="m-msg" name="message" data-label="Message" rows="5" required></textarea></div>
       <button class="btn primary wide" type="submit">Send message</button>
-      <p class="form-status" role="status" hidden>Thank you! Our form isn’t connected yet, so this message wasn’t sent. Please check back soon. Nothing you typed was stored.</p>
+      <p class="form-alt">Prefer email? Write to <a href="mailto:makersinspirellc@gmail.com">makersinspirellc@gmail.com</a>.</p>
     </form>
   </main>
   <footer class="site-foot">

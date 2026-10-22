@@ -310,17 +310,30 @@ def about(site):
     return page(site, '/about/', 'Our Story', f'The story behind Makers Inspire: one-of-a-kind artisan jewelry by {site.get("maker_name") or "the maker"}, made to carry emotion and memory.', body)
 
 
-def form_attrs(site):
+def form_open(site, kind, subject):
+    """<form> start tag + hidden fields. With form_endpoint: POST (FormSubmit-style fields). Without: mailto fallback in site.js."""
     if site.get('form_endpoint'):
-        return f'action="{e(site["form_endpoint"])}" method="POST"'
-    return 'action="#" method="POST" data-offline'
+        cap = 'true' if site.get('form_captcha', True) else 'false'
+        return (f'<form class="form" action="{e(site["form_endpoint"])}" method="POST" data-kind="{kind}" data-subject="{e(subject)}">'
+                f'<input type="hidden" name="_subject" value="{e(subject)}">'
+                f'<input type="hidden" name="_template" value="table">'
+                f'<input type="hidden" name="_captcha" value="{cap}">'
+                f'<input type="hidden" name="_next" value="{e(site["base_url"])}/thanks/">'
+                f'<div class="hp" aria-hidden="true"><label for="{kind}-hp">Leave this field empty</label>'
+                f'<input id="{kind}-hp" type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none"></div>')
+    to = site.get('contact_email') or ''
+    return f'<form class="form" action="#" method="POST" data-kind="{kind}" data-subject="{e(subject)}" data-mailto="{e(to)}">'
 
 
-def offline_note(site):
-    if site.get('form_endpoint'):
+def form_status(site):
+    if not site.get('contact_email'):
         return ''
-    return ('<p class="form-status" role="status" hidden>Thank you! Our form isn’t connected yet, so this message wasn’t sent. '
-            'Please check back soon. Nothing you typed was stored.</p>')
+    if site.get('form_endpoint'):
+        m = e(site['contact_email'])
+        return f'<p class="form-alt">Prefer email? Write to <a href="mailto:{m}">{m}</a>.</p>'
+    m = e(site['contact_email'])
+    return (f'<p class="form-status" role="status" tabindex="-1" hidden>Your email app should open with your message ready to send. '
+            f'If it doesn’t, email <a href="mailto:{m}">{m}</a>.</p>')
 
 
 def commissions(site):
@@ -328,15 +341,14 @@ def commissions(site):
       <h1>Commissions</h1>
       <p class="lede">A one-of-a-kind piece made around your idea, your favorite stone or metal, and the story behind it.</p>
     </section>
-    <form class="form" {form_attrs(site)} data-kind="commission">
-      <input type="hidden" name="_subject" value="New commission request">
-      <div class="field"><label for="c-name">Your name</label><input id="c-name" name="name" autocomplete="name" required></div>
-      <div class="field"><label for="c-email">Email</label><input id="c-email" name="email" type="email" autocomplete="email" inputmode="email" required></div>
-      <div class="field"><label for="c-idea">Your idea</label><textarea id="c-idea" name="idea" rows="4" required placeholder="A necklace, earrings, a ring… anything you have in mind"></textarea></div>
-      <div class="field"><label for="c-material">Preferred stone or metal <span class="opt">(optional)</span></label><input id="c-material" name="stone_or_metal" placeholder="e.g. sterling silver with a favorite stone"></div>
-      <div class="field"><label for="c-story">The story or occasion <span class="opt">(optional)</span></label><textarea id="c-story" name="story" rows="4" placeholder="A birthday, an anniversary, a memory you want to keep close"></textarea></div>
+    {form_open(site, "commission", "Commission request")}
+      <div class="field"><label for="c-name">Your name</label><input id="c-name" name="name" data-label="Name" autocomplete="name" required></div>
+      <div class="field"><label for="c-email">Email</label><input id="c-email" name="email" data-label="Email" type="email" autocomplete="email" inputmode="email" required></div>
+      <div class="field"><label for="c-idea">Your idea</label><textarea id="c-idea" name="idea" data-label="Idea" rows="4" required placeholder="A necklace, earrings, a ring… anything you have in mind"></textarea></div>
+      <div class="field"><label for="c-material">Preferred stone or metal <span class="opt">(optional)</span></label><input id="c-material" name="stone_or_metal" data-label="Preferred stone or metal" placeholder="e.g. sterling silver with a favorite stone"></div>
+      <div class="field"><label for="c-story">The story or occasion <span class="opt">(optional)</span></label><textarea id="c-story" name="story" data-label="Story or occasion" rows="4" placeholder="A birthday, an anniversary, a memory you want to keep close"></textarea></div>
       <button class="btn primary wide" type="submit">Send commission request</button>
-      {offline_note(site)}
+      {form_status(site)}
     </form>'''
     return page(site, '/commissions/', 'Commissions', 'Commission a one-of-a-kind piece of jewelry around your idea, your stone or metal, and the story behind it.', body)
 
@@ -359,9 +371,10 @@ def services_page(site, services):
 def contact(site):
     direct = []
     if site.get('contact_email'):
-        direct.append(f'<p>Email: <a href="mailto:{e(site["contact_email"])}">{e(site["contact_email"])}</a></p>')
+        m = e(site['contact_email'])
+        direct.append(f'<p class="direct">Email <a href="mailto:{m}">{m}</a></p>')
     if site.get('instagram'):
-        direct.append(f'<p>Instagram: <a href="https://www.instagram.com/{e(site["instagram"])}/" rel="noopener">@{e(site["instagram"])}</a></p>')
+        direct.append(f'<p class="direct">Instagram <a href="https://www.instagram.com/{e(site["instagram"])}/" rel="noopener">@{e(site["instagram"])}</a></p>')
     if not direct:
         direct.append(f'<div class="ph-block">{ph_note("Placeholder")}<p>Direct contact details will be added here.</p></div>')
     body = f'''    <section class="page-head">
@@ -369,16 +382,24 @@ def contact(site):
       <p class="lede">Questions about a piece, buying, or a custom idea? Send a note.</p>
     </section>
     {"".join(direct)}
-    <form class="form" {form_attrs(site)} data-kind="contact">
-      <input type="hidden" name="_subject" value="New message from the website">
-      <div class="field"><label for="m-name">Your name</label><input id="m-name" name="name" autocomplete="name" required></div>
-      <div class="field"><label for="m-email">Email</label><input id="m-email" name="email" type="email" autocomplete="email" inputmode="email" required></div>
-      <div class="field"><label for="m-piece">Piece <span class="opt">(optional)</span></label><input id="m-piece" name="piece" data-piece-field></div>
-      <div class="field"><label for="m-msg">Message</label><textarea id="m-msg" name="message" rows="5" required></textarea></div>
+    {form_open(site, "contact", "Question from makersinspire.com")}
+      <div class="field"><label for="m-name">Your name</label><input id="m-name" name="name" data-label="Name" autocomplete="name" required></div>
+      <div class="field"><label for="m-email">Email</label><input id="m-email" name="email" data-label="Email" type="email" autocomplete="email" inputmode="email" required></div>
+      <div class="field"><label for="m-piece">Piece <span class="opt">(optional)</span></label><input id="m-piece" name="piece" data-label="Piece" data-piece-field></div>
+      <div class="field"><label for="m-msg">Message</label><textarea id="m-msg" name="message" data-label="Message" rows="5" required></textarea></div>
       <button class="btn primary wide" type="submit">Send message</button>
-      {offline_note(site)}
+      {form_status(site)}
     </form>'''
     return page(site, '/contact/', 'Contact', 'Contact Makers Inspire about a piece, a purchase or a custom commission.', body)
+
+
+def thanks(site):
+    body = '''    <section class="page-head center">
+      <h1>Thank you</h1>
+      <p class="lede">Your message is on its way. We’ll be in touch soon.</p>
+      <div class="actions"><a class="btn primary" href="/shop/">Back to the shop</a><a class="btn" href="/">Home</a></div>
+    </section>'''
+    return page(site, '/thanks/', 'Thank you', 'Thank you for your message.', body).replace('<meta name="theme-color"', '<meta name="robots" content="noindex">\n  <meta name="theme-color"', 1)
 
 
 def not_found(site):
@@ -401,7 +422,7 @@ def outputs():
     files = {
         'index.html': home(site, pieces, services), 'shop/index.html': shop(site, pieces), 'about/index.html': about(site),
         'commissions/index.html': commissions(site), 'services/index.html': services_page(site, services),
-        'contact/index.html': contact(site), '404.html': not_found(site), 'sitemap.xml': sitemap(site, pieces),
+        'contact/index.html': contact(site), 'thanks/index.html': thanks(site), '404.html': not_found(site), 'sitemap.xml': sitemap(site, pieces),
         'robots.txt': f'User-agent: *\nAllow: /\n\nSitemap: {site["base_url"]}/sitemap.xml\n',
         'assets/style.css': open(os.path.join(ROOT, 'src', 'style.css'), encoding='utf-8').read(),
         'assets/site.js': open(os.path.join(ROOT, 'src', 'site.js'), encoding='utf-8').read(),
