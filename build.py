@@ -493,27 +493,40 @@ def about(site):
     return page(site, '/about/', 'Our Story', f'The story behind Makers Inspire: one-of-a-kind artisan jewelry by {site.get("maker_name") or "the maker"}, made to carry emotion and memory.', body)
 
 
+def form_endpoint(site, kind):
+    """POST endpoint for one form: site.json form_endpoints[kind] (per form), else form_endpoint (shared), else None."""
+    eps = site.get('form_endpoints') or {}
+    return eps.get(kind) or site.get('form_endpoint')
+
+
 def form_open(site, kind, subject):
-    """<form> start tag + hidden fields. With form_endpoint: POST (FormSubmit-style fields). Without: mailto fallback in site.js."""
-    if site.get('form_endpoint'):
-        cap = 'true' if site.get('form_captcha', True) else 'false'
-        return (f'<form class="form" action="{e(site["form_endpoint"])}" method="POST" data-kind="{kind}" data-subject="{e(subject)}">'
+    """<form> start tag + hidden fields. With an endpoint: POST (Formspree fields: _subject + _gotcha honeypot);
+    site.js sends it with fetch and goes to /thanks/. Without: mailto fallback in site.js."""
+    ep = form_endpoint(site, kind)
+    if ep:
+        return (f'<form class="form" action="{e(ep)}" method="POST" data-kind="{kind}" data-subject="{e(subject)}" data-thanks="/thanks/">'
                 f'<input type="hidden" name="_subject" value="{e(subject)}">'
-                f'<input type="hidden" name="_template" value="table">'
-                f'<input type="hidden" name="_captcha" value="{cap}">'
-                f'<input type="hidden" name="_next" value="{e(site["base_url"])}/thanks/">'
                 f'<div class="hp" aria-hidden="true"><label for="{kind}-hp">Leave this field empty</label>'
-                f'<input id="{kind}-hp" type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none"></div>')
+                f'<input id="{kind}-hp" type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="display:none"></div>')
     to = site.get('contact_email') or ''
     return f'<form class="form" action="#" method="POST" data-kind="{kind}" data-subject="{e(subject)}" data-mailto="{e(to)}">'
 
 
-def form_status(site):
+def show_email(site):
+    """Show contact_email on the pages? Off when show_contact_email is false (keeps the address out of the page source)."""
+    return bool(site.get('contact_email')) and site.get('show_contact_email', True) is not False
+
+
+def form_status(site, kind):
+    if form_endpoint(site, kind):
+        err = ('<p class="form-status form-error" role="alert" tabindex="-1" hidden>Sorry, your message didn’t send. '
+               'Please try again in a moment.</p>')
+        if show_email(site):
+            m = e(site['contact_email'])
+            return err + f'<p class="form-alt">Prefer email? Write to <a href="mailto:{m}">{m}</a>.</p>'
+        return err
     if not site.get('contact_email'):
         return ''
-    if site.get('form_endpoint'):
-        m = e(site['contact_email'])
-        return f'<p class="form-alt">Prefer email? Write to <a href="mailto:{m}">{m}</a>.</p>'
     m = e(site['contact_email'])
     return (f'<p class="form-status" role="status" tabindex="-1" hidden>Your email app should open with your message ready to send. '
             f'If it doesn’t, email <a href="mailto:{m}">{m}</a>.</p>')
@@ -524,7 +537,7 @@ def commissions(site):
       <h1>Commissions</h1>
       <p class="lede">A one-of-a-kind piece made around your idea, your favorite stone or metal, and the story behind it.</p>
     </section>
-    {form_open(site, "commission", "Commission request")}
+    {form_open(site, "commission", "New commission request - Makers Inspire")}
       <p class="form-note">Required fields are marked *</p>
       <div class="field"><label for="c-name">Your name <span class="req" aria-hidden="true">*</span></label><input id="c-name" name="name" data-label="Name" autocomplete="name" required data-err="Please enter your name."></div>
       <div class="field"><label for="c-email">Email <span class="req" aria-hidden="true">*</span></label><input id="c-email" name="email" data-label="Email" type="email" autocomplete="email" inputmode="email" required data-err="Please enter your email address." data-err-type="Please enter a valid email address, like name@example.com."></div>
@@ -532,7 +545,7 @@ def commissions(site):
       <div class="field"><label for="c-material">Preferred stone or metal <span class="opt">(optional)</span></label><input id="c-material" name="stone_or_metal" data-label="Preferred stone or metal" placeholder="e.g. sterling silver with a favorite stone"></div>
       <div class="field"><label for="c-story">The story or occasion <span class="opt">(optional)</span></label><textarea id="c-story" name="story" data-label="Story or occasion" rows="4" placeholder="A birthday, an anniversary, a memory you want to keep close"></textarea></div>
       <button class="btn primary wide" type="submit">Send commission request</button>
-      {form_status(site)}
+      {form_status(site, "commission")}
     </form>'''
     return page(site, '/commissions/', 'Commissions', 'Commission a one-of-a-kind piece of jewelry around your idea, your stone or metal, and the story behind it.', body)
 
@@ -554,26 +567,26 @@ def services_page(site, services):
 
 def contact(site):
     direct = []
-    if site.get('contact_email'):
+    if show_email(site):
         m = e(site['contact_email'])
         direct.append(f'<p class="direct">Email <a href="mailto:{m}">{m}</a></p>')
     if site.get('instagram'):
         direct.append(f'<p class="direct">Instagram <a href="https://www.instagram.com/{e(site["instagram"])}/" rel="noopener">@{e(site["instagram"])}</a></p>')
-    if not direct:
+    if not direct and not form_endpoint(site, 'contact'):
         direct.append(f'<div class="ph-block">{ph_note("Placeholder")}<p>Direct contact details will be added here.</p></div>')
     body = f'''    <section class="page-head">
       <h1>Contact</h1>
       <p class="lede">Questions about a piece, buying, or a custom idea? Send a note.</p>
     </section>
     {"".join(direct)}
-    {form_open(site, "contact", "Question from makersinspire.com")}
+    {form_open(site, "contact", "New message - Makers Inspire")}
       <p class="form-note">Required fields are marked *</p>
       <div class="field"><label for="m-name">Your name <span class="req" aria-hidden="true">*</span></label><input id="m-name" name="name" data-label="Name" autocomplete="name" required data-err="Please enter your name."></div>
       <div class="field"><label for="m-email">Email <span class="req" aria-hidden="true">*</span></label><input id="m-email" name="email" data-label="Email" type="email" autocomplete="email" inputmode="email" required data-err="Please enter your email address." data-err-type="Please enter a valid email address, like name@example.com."></div>
       <div class="field"><label for="m-piece">Piece <span class="opt">(optional)</span></label><input id="m-piece" name="piece" data-label="Piece" data-piece-field></div>
       <div class="field"><label for="m-msg">Message <span class="req" aria-hidden="true">*</span></label><textarea id="m-msg" name="message" data-label="Message" rows="5" required data-err="Please write your message."></textarea></div>
       <button class="btn primary wide" type="submit">Send message</button>
-      {form_status(site)}
+      {form_status(site, "contact")}
     </form>'''
     return page(site, '/contact/', 'Contact', 'Contact Makers Inspire about a piece, a purchase or a custom commission.', body)
 

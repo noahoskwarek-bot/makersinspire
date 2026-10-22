@@ -51,18 +51,19 @@ A remade favorite can keep using the same link.
 
 ## Forms (commissions + contact)
 Both forms are configured from `site.json`:
-- **`form_endpoint`**: currently `https://formsubmit.co/makersinspirellc@gmail.com` (approved by Noah). Both forms POST there with these hidden fields:
-  - `_subject`: "Commission request", or on Contact "Question about <piece>" (set on submit from the Piece field; "Question from makersinspire.com" if empty);
-  - `_template=table`;
-  - `_captcha` (`site.json` → `form_captcha`; `true` keeps FormSubmit's captcha, `false` turns it off);
-  - `_next=https://www.makersinspire.com/thanks/` (the thank-you page, `/thanks/`, noindex);
-  - `_honey`: a hidden honeypot field for spam bots.
+- **`form_endpoints`**: one [Formspree](https://formspree.io) endpoint per form (free plan, account on the shared lessons login in Noah's vault):
+  - `contact` (Contact page): `https://formspree.io/f/xkjjwygg`
+  - `commission` (Commissions page): `https://formspree.io/f/xvkkplgz`
 
-  Visible fields: name, email (FormSubmit uses it as reply-to), and idea / stone_or_metal / story (Commissions) or piece / message (Contact).
-- **FormSubmit activation:** the very first submission to a new FormSubmit address sends an activation email to makersinspirellc@gmail.com. Someone must click it before messages are delivered. Nothing has been submitted yet, so expect that email on the first real (or deliberate test) submission. After activation, FormSubmit can also provide a random-string endpoint that hides the address; paste it into `form_endpoint` and rebuild.
-- **`form_endpoint: null`** (fallback): submitting opens the visitor's email app with a prefilled message to `contact_email`. Subject as above; the body is the filled-in fields as labelled lines ("Name: …", "Email: …", "Idea: …", "Preferred stone or metal: …", "Story or occasion: …", "Piece: …", "Message: …"). A short note says the email app will open, with the address as a fallback.
+  Submissions are emailed to Erika's Makers Inspire Gmail (set in Formspree, not in this repo, so no address appears in the page source). Formspree sends her a one-time verification email that must be clicked before messages are delivered. Each form sends these hidden fields:
+  - `_subject`: "New commission request - Makers Inspire", or on Contact "Question about <piece> - Makers Inspire" (set on submit from the Piece field; "New message - Makers Inspire" if empty);
+  - `_gotcha`: Formspree's hidden honeypot field for spam bots.
+
+  Visible fields: name, email (Formspree uses it as reply-to), and idea / stone_or_metal / story (Commissions) or piece / message (Contact).
+- **Thank-you flow:** with JavaScript, `site.js` sends the form with `fetch` (`Accept: application/json`). On success it goes to `/thanks/` (noindex); on an error it shows an inline "didn't send, please try again" message. Without JavaScript the form posts normally and Formspree shows its own thank-you page (the free plan doesn't allow a custom redirect, so `_next` isn't used).
+- **No endpoint** (remove a key from `form_endpoints`, or set it to `null`): that form opens the visitor's email app with a prefilled message to `contact_email`. Subject as above; the body is the filled-in fields as labelled lines ("Name: …", "Email: …", "Idea: …", "Preferred stone or metal: …", "Story or occasion: …", "Piece: …", "Message: …"). A short note says the email app will open, with the address as a fallback. (This puts the address in the page source.) A single shared `form_endpoint` string also still works.
 - Validation runs before either path: required fields are marked *, and errors appear under each field (linked with `aria-describedby`, `aria-invalid`), with focus moving to the first problem. Without JavaScript, the browser's own validation runs.
-- **`contact_email`**: `makersinspirellc@gmail.com` (provided by Noah). Shown on the Contact page as a mailto link, and under both forms as "Prefer email?". **`instagram`**: shown on the Contact page once set.
+- **`contact_email`**: Erika's address (provided by Noah). Used only by the mailto fallback above. **`show_contact_email`**: `false` (current) keeps it off every page; `true` shows it on the Contact page as a mailto link and under both forms as "Prefer email?". **`instagram`**: shown on the Contact page once set.
 
 ## Services
 Add entries to `services.json`. `status` is `"available"` or `"coming_soon"` (shows a "Coming soon" tag). `link` and `link_label` are optional (e.g. `/commissions/`).

@@ -11,10 +11,13 @@
   "currency": "USD",
   "checkout_provider": "stripe_payment_links",
   "_checkout_help": "Checkout uses Stripe Payment Links: paste each piece's link (https://buy.stripe.com/...) into its stripe_link in pieces.json. Pieces without a link show an 'Ask about this piece' button that opens the contact form.",
-  "form_endpoint": "https://formsubmit.co/makersinspirellc@gmail.com",
-  "form_captcha": true,
-  "_form_help": "POST endpoint for the commission + contact forms. Works with FormSubmit-style endpoints, e.g. \"https://formsubmit.co/<email>\" (sends _subject, _template=table, _captcha, _next=/thanks/ and the _honey honeypot). null = submitting opens the visitor's email app with a prefilled message to contact_email. form_captcha: false sends _captcha=false.",
+  "form_endpoints": {
+    "contact": "https://formspree.io/f/xkjjwygg",
+    "commission": "https://formspree.io/f/xvkkplgz"
+  },
+  "_form_help": "Formspree POST endpoints, one per form (contact = /contact/, commission = /commissions/). Each form sends _subject and the _gotcha honeypot; site.js submits with fetch and goes to /thanks/ (without JS the form posts normally and Formspree shows its own thank-you page). Remove a key (or set it to null) and that form falls back to opening the visitor's email app with a prefilled message to contact_email.",
   "contact_email": "makersinspirellc@gmail.com",
-  "_contact_help": "Confirmed address (provided by Noah). Shown on the Contact page; also used by the forms' mailto fallback while form_endpoint is null.",
+  "show_contact_email": false,
+  "_contact_help": "Confirmed address (provided by Noah). Used only by the forms' mailto fallback. show_contact_email: false keeps it off every page (no plain address in the page source); true shows it on the Contact page and under the forms.",
   "instagram": null
 }

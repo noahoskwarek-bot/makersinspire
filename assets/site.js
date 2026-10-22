@@ -129,12 +129,28 @@
     return bad;
   }
 
-  // Forms. With form_endpoint (site.json) the form POSTs there; for the contact form the subject names the piece.
-  // Without it (data-mailto): open the visitor's email app with a prefilled message.
+  // Forms. With an endpoint (site.json form_endpoints) the form POSTs there (Formspree). With JS it's sent with fetch
+  // (Accept: application/json): ok -> the thank-you page, error -> an inline message. Without JS it posts normally.
+  // For the contact form the subject names the piece. Without an endpoint (data-mailto): open the visitor's email app.
   function subjectFor(f) {
     var piece = f.querySelector('[name="piece"]');
     var p = piece && piece.value.trim();
-    return f.getAttribute('data-kind') === 'contact' && p ? 'Question about ' + p : f.getAttribute('data-subject');
+    return f.getAttribute('data-kind') === 'contact' && p ? 'Question about ' + p + ' - Makers Inspire' : f.getAttribute('data-subject');
+  }
+  function send(f) {
+    var btn = f.querySelector('button[type="submit"]');
+    var err = f.querySelector('.form-error');
+    if (err) err.hidden = true;
+    if (btn) btn.disabled = true;
+    function fail() {
+      if (btn) btn.disabled = false;
+      if (err) { err.hidden = false; err.focus(); }
+    }
+    fetch(f.action, { method: 'POST', body: new FormData(f), headers: { Accept: 'application/json' } })
+      .then(function (r) {
+        if (r.ok) window.location.href = f.getAttribute('data-thanks') || '/thanks/';
+        else fail();
+      }, fail);
   }
   document.querySelectorAll('form.form').forEach(function (f) {
     f.setAttribute('novalidate', '');
@@ -149,6 +165,9 @@
       if (to === null) {  // POST to the endpoint
         var sub = f.querySelector('input[name="_subject"]');
         if (sub) sub.value = subjectFor(f);
+        if (!window.fetch || !window.FormData) return;  // plain POST
+        ev.preventDefault();
+        send(f);
         return;
       }
       ev.preventDefault();
