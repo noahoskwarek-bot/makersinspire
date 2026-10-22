@@ -1,8 +1,45 @@
 # Adding pieces to makersinspire.com
 
-A plain-English guide for Erika and Noah. Adding a piece takes three steps: **photos**, **one entry in `pieces.json`**, then **rebuild and publish**. If you'd rather not touch files, skip to [Hand it over](#hand-it-over).
+A plain-English guide for Erika and Noah. The easiest way is to [just email it](#just-email-it). To do it yourself, adding a piece takes three steps: **photos**, **one entry in `pieces.json`**, then **rebuild and publish**.
 
 All example values below are made up. Anything marked `EXAMPLE` is not a real piece, price or link.
+
+## Just email it
+
+Erika, you don't need to touch any files. Email new pieces to **pieces@makersinspire.com** from your usual email address. Only approved senders are accepted, so emails from other addresses are ignored.
+
+**To add a new piece**, put these in the email:
+- **Photos** as attachments: several close-ups. The first one is the main photo.
+- The **piece name**.
+- The **price**.
+- **A sentence or two about it**: the stones, the metals, the feeling or story behind it.
+- Your **Stripe Payment Link**, if you have one (optional).
+
+**To take a piece down**, email `Remove: <piece name>` (or `sold`). It's hidden from the shop, never marked "sold", and can come back later.
+
+**To change something**, email `Update: <piece name>` and say what changed.
+
+**Nothing goes live without the details you send.** If anything's missing, you'll get a question back. Once the piece is live, you'll get a reply with the link.
+
+**Keep your original photos.** The website only stores resized copies, with location data removed.
+
+Here's a sample email. Everything in it is fake:
+
+```
+To:      pieces@makersinspire.com
+Subject: New piece: EXAMPLE Sample Necklace
+
+Name: EXAMPLE Sample Necklace
+Price: EXAMPLE-PRICE
+About: EXAMPLE: one or two sentences about the stones, the metals
+       and the story behind the piece.
+Stripe link: (none yet)
+
+Attachments: EXAMPLE-1.jpg (main photo), EXAMPLE-2.jpg, EXAMPLE-3.jpg
+```
+
+The rest of this guide is the do-it-yourself version.
+
 
 ---
 
