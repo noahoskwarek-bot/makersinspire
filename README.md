@@ -11,7 +11,7 @@ Static site for **Makers Inspire**, one-of-a-kind artisan jewelry. Hosted on Git
 - **Build**: `python3 build.py`, then `python3 build.py --check` (must say "up to date"). Optional `BUILD_DATE=YYYY-MM-DD` pins the sitemap date.
 - **Commit and push** the data plus the generated files. Pages deploys in about a minute.
 
-Generated pages: `/`, `/shop/`, `/shop/<slug>/` (one per piece), `/about/`, `/commissions/`, `/services/`, `/contact/`, `/thanks/`, `404.html`, `sitemap.xml`, `robots.txt`, `images/og.png`, and placeholder images in `images/placeholders/`.
+Generated pages: `/`, `/shop/`, `/shop/<slug>/` (one per piece), `/about/`, `/commissions/`, `/services/`, `/contact/`, `/thanks/`, `404.html`, `sitemap.xml`, `robots.txt`, `site.webmanifest`, and placeholder images in `images/placeholders/`.
 
 ## Add a piece
 1. Put close-up photos in `images/pieces/<slug>/` (JPEG or WebP, about 1600 px on the long edge, square crops look best in the grid).
@@ -78,8 +78,20 @@ Both forms are configured from `site.json`:
 ## Services
 Add entries to `services.json`. `status` is `"available"` or `"coming_soon"` (shows a "Coming soon" tag). `link` and `link_label` are optional (e.g. `/commissions/`).
 
-## Logo
-The header uses a text wordmark until the black-and-white logo is ready. Add it as `assets/logo.svg` (or PNG) and set `site.json` → `"logo": "assets/logo.svg"`.
+## Logo, icons and share image
+Noah's logo file is kept as `brand/logo-original.jpg`. `tools/make_brand.py` traces it to clean SVGs and writes every derived file (run it only if the original changes; it needs `pip install vtracer cairosvg pillow numpy`, e.g. in a venv):
+
+| File | Use |
+|---|---|
+| `brand/logo-black.svg` | Black (#111) lockup, transparent. **Header** (40px tall, 46px on desktop) and **footer** (34px), both light. `site.json` → `logo`. |
+| `brand/logo-white.svg` | Silver-gradient MI mark + white wordmark, transparent, for **dark areas**. `site.json` → `logo_dark` (used in the share image; there is no dark section on the site yet). |
+| `brand/mark-black.svg`, `brand/mark-white.svg`, `brand/mark-silver.svg` | The MI square alone. |
+| `brand/*@2x.png`, `brand/*@3x.png` | PNG fallbacks of each (1x = 48px tall). |
+| `favicon.svg`, `favicon.ico` (16/32/48) | Tab icon: silver MI on black. The 16px version is redrawn on whole pixels so it stays legible. |
+| `apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png` + `site.webmanifest` | Home-screen / app icons: silver MI on black (maskable-safe). |
+| `images/og-logo.png` | 1200x630 share image (og:image / twitter:image): logo centred on black with a thin stone-and-metal accent line. Piece pages use their own first photo once real photos exist. |
+
+The trace matches the original closely (letter shapes and spacing overlap ~99%). The silver is a measured linear gradient (#efefef → #989898). Alt text is "Makers Inspire". Set `logo` to `null` to go back to the text wordmark.
 
 ## Placeholders still to replace
 - Photos: generated SVGs marked "Placeholder photo".

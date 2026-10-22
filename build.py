@@ -10,6 +10,7 @@ import datetime
 import html
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -72,53 +73,54 @@ def placeholder_svg(p, k, n):
 '''
 
 
-def og_png(site):
-    try:
-        from PIL import Image, ImageDraw, ImageFont
-    except ImportError:
-        return None
-    import io
-    W, H = 1200, 630
-    im = Image.new('RGB', (W, H))
-    cols = [(244, 221, 214), (230, 214, 238), (213, 232, 234), (243, 227, 199)]
-    px = im.load()
-    for x in range(W):
-        t = x / (W - 1) * (len(cols) - 1)
-        i = min(int(t), len(cols) - 2); f = t - i
-        c = tuple(int(cols[i][j] + (cols[i + 1][j] - cols[i][j]) * f) for j in range(3))
-        for y in range(H):
-            px[x, y] = c
-    d = ImageDraw.Draw(im)
-    d.rectangle([60, 60, W - 60, H - 60], fill=(255, 255, 255))
-
-    def font(size, serif=True):
-        for path in (['/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf'] if serif else ['/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf']):
-            if os.path.exists(path):
-                return ImageFont.truetype(path, size)
-        return ImageFont.load_default()
-    d.text((W / 2, H / 2 - 30), site['name'].upper(), font=font(76), fill=(17, 17, 17), anchor='mm')
-    d.text((W / 2, H / 2 + 50), site.get('tagline', ''), font=font(34, False), fill=(90, 84, 78), anchor='mm')
-    b = io.BytesIO()
-    im.save(b, 'PNG', optimize=True)
-    return b.getvalue()
-
-
 # ---------- page shell ----------
 NAV = [('/shop/', 'Shop'), ('/about/', 'Our Story'), ('/commissions/', 'Commissions'), ('/services/', 'Services'), ('/contact/', 'Contact')]
 
 
+def logo_img(site, key, cls, height):
+    """<img> for a logo file from site.json (key "logo" = for light areas, "logo_dark" = for dark areas), or None.
+    width/height come from the SVG viewBox so the header doesn't shift while it loads."""
+    src = site.get(key)
+    if not src:
+        return None
+    w = round(height * 4.16)
+    path = os.path.join(ROOT, src.lstrip('/'))
+    if src.endswith('.svg') and os.path.exists(path):
+        m = re.search(r'viewBox="([-\d. ]+)"', open(path, encoding='utf-8').read())
+        if m:
+            vb = [float(x) for x in m.group(1).split()]
+            w = round(height * vb[2] / vb[3])
+    return f'<img class="{cls}" src="/{e(src.lstrip("/"))}" alt="{e(site["name"])}" width="{w}" height="{height}">'
+
+
 def wordmark(site):
-    # LOGO SLOT: set site.json "logo" to the black-and-white logo file (e.g. "assets/logo.svg") to replace the text wordmark.
-    if site.get('logo'):
-        return f'<img class="logo" src="/{e(site["logo"].lstrip("/"))}" alt="{e(site["name"])}" height="40">'
-    return f'<span class="wordmark">{e(site["name"])}</span>'
+    # LOGO SLOT: site.json "logo" (black logo, light header). null = text wordmark.
+    return logo_img(site, 'logo', 'logo', 40) or f'<span class="wordmark">{e(site["name"])}</span>'
 
 
-def page(site, path, title, desc, body, og_image='/images/og.png', extra_head=''):
+def foot_brand(site):
+    # The footer is light, so it uses the black logo too. (Use logo_img(site, 'logo_dark', ...) on a dark background.)
+    img = logo_img(site, 'logo', 'foot-logo', 34)
+    return f'<p class="foot-brand">{img}</p>' if img else f'<p class="foot-brand">{e(site["name"])}</p>'
+
+
+def webmanifest(site):
+    return json.dumps({
+        'name': site['name'], 'short_name': site['name'], 'start_url': '/', 'display': 'standalone',
+        'background_color': '#000000', 'theme_color': '#ffffff',
+        'icons': [{'src': '/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any maskable'},
+                  {'src': '/icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any maskable'}],
+    }, indent=2) + '\n'
+
+
+def page(site, path, title, desc, body, og_image='/images/og-logo.png', extra_head=''):
     url = site['base_url'] + path
     full_title = title if title == site['name'] else f'{title} · {site["name"]}'
     nav = ''.join(f'<li><a href="{h}"{" aria-current=\"page\"" if path.startswith(h) else ""}>{e(t)}</a></li>' for h, t in NAV)
     img = site['base_url'] + og_image
+    is_logo = og_image == '/images/og-logo.png'
+    og_size = '\n  <meta property="og:image:width" content="1200">\n  <meta property="og:image:height" content="630">' if is_logo else ''
+    img_alt = site['name'] + (' logo' if is_logo else '')
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,13 +134,18 @@ def page(site, path, title, desc, body, og_image='/images/og.png', extra_head=''
   <meta property="og:url" content="{e(url)}">
   <meta property="og:title" content="{e(full_title)}">
   <meta property="og:description" content="{e(desc)}">
-  <meta property="og:image" content="{e(img)}">
+  <meta property="og:image" content="{e(img)}">{og_size}
+  <meta property="og:image:alt" content="{e(img_alt)}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{e(full_title)}">
   <meta name="twitter:description" content="{e(desc)}">
   <meta name="twitter:image" content="{e(img)}">
+  <meta name="twitter:image:alt" content="{e(img_alt)}">
   <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/assets/style.css">{extra_head}
 </head>
 <body>
@@ -153,7 +160,7 @@ def page(site, path, title, desc, body, og_image='/images/og.png', extra_head=''
   </main>
   <footer class="site-foot">
     <div class="accent-bar" aria-hidden="true"></div>
-    <p class="foot-brand">{e(site["name"])}</p>
+    {foot_brand(site)}
     <p>One-of-a-kind artisan jewelry.</p>
     <ul class="foot-nav">{nav}</ul>
     <p class="fine">© {BUILD_DATE[:4]} {e(site["name"])}</p>
@@ -290,7 +297,7 @@ def piece_page(site, p, pieces):
       <div class="block-head"><h2>More pieces</h2><a class="more" href="/shop/">View all</a></div>
       <ul class="grid">{"".join(card(o, site) for o in others)}</ul>
     </section>'''
-    og = imgs[0]['src'] if not imgs[0]['placeholder'] and imgs[0]['src'].lower().endswith(('.jpg', '.jpeg', '.png')) else '/images/og.png'
+    og = imgs[0]['src'] if not imgs[0]['placeholder'] and imgs[0]['src'].lower().endswith(('.jpg', '.jpeg', '.png')) else '/images/og-logo.png'
     return page(site, f'/shop/{p["slug"]}/', p['name'], f'{p["name"]}: one-of-a-kind artisan jewelry. {materials(p)}.', body, og_image=og)
 
 
@@ -434,10 +441,8 @@ def outputs():
         for k, im in enumerate(p['_imgs']):
             if im['placeholder']:
                 files[im['src'].lstrip('/')] = placeholder_svg(p, k, n)
-    bins = {}
-    og = og_png(site)
-    if og:
-        bins['images/og.png'] = og
+    files['site.webmanifest'] = webmanifest(site)
+    bins = {}  # logo, icons and images/og-logo.png are made by tools/make_brand.py (committed files)
     return files, bins
 
 
