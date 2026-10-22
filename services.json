@@ -1,0 +1,21 @@
+{
+  "_help": "Services section. Add entries any time, then run python3 build.py. status: \"available\" or \"coming_soon\". link is optional (e.g. /commissions/).",
+  "services": [
+    {
+      "slug": "custom-commissions",
+      "name": "Custom commissions",
+      "status": "available",
+      "summary": "A one-of-a-kind piece made around your idea, your stone or metal, and the story behind it.",
+      "link": "/commissions/",
+      "link_label": "Start a commission"
+    },
+    {
+      "slug": "stone-setting",
+      "name": "Stone setting",
+      "status": "coming_soon",
+      "summary": "Coming soon. Details to follow.",
+      "link": null,
+      "link_label": null
+    }
+  ]
+}

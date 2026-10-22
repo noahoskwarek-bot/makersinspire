@@ -1,0 +1,18 @@
+{
+  "_help": "Site-wide settings. Edit, then run: python3 build.py && python3 build.py --check. See README.md.",
+  "name": "Makers Inspire",
+  "tagline": "Heirloom meets a night out",
+  "base_url": "https://www.makersinspire.com",
+  "maker_name": "Erika Fry",
+  "logo": null,
+  "_logo_help": "Path to the black-and-white logo, e.g. \"assets/logo.svg\". null = text wordmark.",
+  "price_display": "Price TBD",
+  "currency": "USD",
+  "checkout_provider": "stripe_payment_links",
+  "_checkout_help": "Checkout uses Stripe Payment Links: paste each piece's link (https://buy.stripe.com/...) into its stripe_link in pieces.json. Pieces without a link show an 'Ask about this piece' button that opens the contact form.",
+  "form_endpoint": null,
+  "_form_help": "POST endpoint for the commission + contact forms (e.g. a Formspree/Basin URL). null = forms show a friendly 'not connected yet' note on submit and send nothing.",
+  "contact_email": null,
+  "_contact_help": "Only set a confirmed address. null = no email is published.",
+  "instagram": null
+}
