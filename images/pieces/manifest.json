@@ -1,0 +1,105 @@
+{
+ "circles-bracelet/1-front.jpg": {
+  "sha1": "dbd887f42ecb86cc768fce3ddd66b3efa5b1c4f4",
+  "w": 1440,
+  "h": 1799,
+  "bases": [
+   "/images/pieces/circles-bracelet/1-front-160",
+   "/images/pieces/circles-bracelet/1-front-320",
+   "/images/pieces/circles-bracelet/1-front-480",
+   "/images/pieces/circles-bracelet/1-front-800",
+   "/images/pieces/circles-bracelet/1-front-1200",
+   "/images/pieces/circles-bracelet/1-front-1440"
+  ]
+ },
+ "custom-disc-pendant-necklace/1-front.jpg": {
+  "sha1": "1592f9ac1512479cf685c638fbf40175210750af",
+  "w": 1032,
+  "h": 1290,
+  "bases": [
+   "/images/pieces/custom-disc-pendant-necklace/1-front-160",
+   "/images/pieces/custom-disc-pendant-necklace/1-front-320",
+   "/images/pieces/custom-disc-pendant-necklace/1-front-480",
+   "/images/pieces/custom-disc-pendant-necklace/1-front-800",
+   "/images/pieces/custom-disc-pendant-necklace/1-front-1032"
+  ]
+ },
+ "hoops-with-baubles/1-front.jpg": {
+  "sha1": "0b79e18d9da8ad181bc6687ff81da97681934586",
+  "w": 1269,
+  "h": 1003,
+  "bases": [
+   "/images/pieces/hoops-with-baubles/1-front-160",
+   "/images/pieces/hoops-with-baubles/1-front-320",
+   "/images/pieces/hoops-with-baubles/1-front-480",
+   "/images/pieces/hoops-with-baubles/1-front-800",
+   "/images/pieces/hoops-with-baubles/1-front-1200",
+   "/images/pieces/hoops-with-baubles/1-front-1269"
+  ]
+ },
+ "labradorite-statement-necklace/1-front.jpg": {
+  "sha1": "f87f5125f5d712ef7cc303093cfe8ae096455cfc",
+  "w": 1440,
+  "h": 1440,
+  "bases": [
+   "/images/pieces/labradorite-statement-necklace/1-front-160",
+   "/images/pieces/labradorite-statement-necklace/1-front-320",
+   "/images/pieces/labradorite-statement-necklace/1-front-480",
+   "/images/pieces/labradorite-statement-necklace/1-front-800",
+   "/images/pieces/labradorite-statement-necklace/1-front-1200",
+   "/images/pieces/labradorite-statement-necklace/1-front-1440"
+  ]
+ },
+ "sapphire-gold-bead-stacking-bracelet/1-front.jpg": {
+  "sha1": "964bc9a21027570b2aac62aa0a8cfb06a9563143",
+  "w": 1440,
+  "h": 1440,
+  "bases": [
+   "/images/pieces/sapphire-gold-bead-stacking-bracelet/1-front-160",
+   "/images/pieces/sapphire-gold-bead-stacking-bracelet/1-front-320",
+   "/images/pieces/sapphire-gold-bead-stacking-bracelet/1-front-480",
+   "/images/pieces/sapphire-gold-bead-stacking-bracelet/1-front-800",
+   "/images/pieces/sapphire-gold-bead-stacking-bracelet/1-front-1200",
+   "/images/pieces/sapphire-gold-bead-stacking-bracelet/1-front-1440"
+  ]
+ },
+ "simple-arch-earrings/1-front.jpg": {
+  "sha1": "d27d8a192b7bf405d52fd276a83c907d9e3b6612",
+  "w": 1282,
+  "h": 1275,
+  "bases": [
+   "/images/pieces/simple-arch-earrings/1-front-160",
+   "/images/pieces/simple-arch-earrings/1-front-320",
+   "/images/pieces/simple-arch-earrings/1-front-480",
+   "/images/pieces/simple-arch-earrings/1-front-800",
+   "/images/pieces/simple-arch-earrings/1-front-1200",
+   "/images/pieces/simple-arch-earrings/1-front-1282"
+  ]
+ },
+ "two-inch-gold-hoops/1-front.jpg": {
+  "sha1": "ddad1a235aeed41a804cbde237700080282ee320",
+  "w": 1440,
+  "h": 1800,
+  "bases": [
+   "/images/pieces/two-inch-gold-hoops/1-front-160",
+   "/images/pieces/two-inch-gold-hoops/1-front-320",
+   "/images/pieces/two-inch-gold-hoops/1-front-480",
+   "/images/pieces/two-inch-gold-hoops/1-front-800",
+   "/images/pieces/two-inch-gold-hoops/1-front-1200",
+   "/images/pieces/two-inch-gold-hoops/1-front-1440"
+  ]
+ },
+ "wristful-beauty-hammered-bracelet/1-front.jpg": {
+  "sha1": "4d096b1d49b4e8f83ab7313c40427a6f7ed346b0",
+  "w": 1440,
+  "h": 1439,
+  "bases": [
+   "/images/pieces/wristful-beauty-hammered-bracelet/1-front-160",
+   "/images/pieces/wristful-beauty-hammered-bracelet/1-front-320",
+   "/images/pieces/wristful-beauty-hammered-bracelet/1-front-480",
+   "/images/pieces/wristful-beauty-hammered-bracelet/1-front-800",
+   "/images/pieces/wristful-beauty-hammered-bracelet/1-front-1200",
+   "/images/pieces/wristful-beauty-hammered-bracelet/1-front-1440"
+  ]
+ }
+}

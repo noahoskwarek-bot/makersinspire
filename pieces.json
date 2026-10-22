@@ -2,94 +2,325 @@
   "_help": "The shop lineup. See ADDING-PIECES.md for every field. Photos: put originals in photos/<slug>/ (optionally list them in images as {\"file\": \"1-front.jpg\", \"alt\": \"...\"}), then run python3 build.py. Set \"show\": false to take a piece out of the rotation without deleting it. There are no sold/sold-out states on purpose: favorites can be remade. stripe_link: paste the piece's Stripe Payment Link (https://buy.stripe.com/...) to show a Buy button; leave \"\" for an 'Ask about this piece' button.",
   "pieces": [
     {
+      "slug": "labradorite-statement-necklace",
+      "name": "Labradorite statement necklace",
+      "style": "Statement",
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [
+        "Labradorite"
+      ],
+      "description": "A statement necklace of faceted labradorite beads with gold-filled details.",
+      "details": [
+        "Length: about 20 in"
+      ],
+      "price": null,
+      "stripe_link": "",
+      "images": [
+        {
+          "file": "1-front.jpg",
+          "alt": "Long strand of faceted grey labradorite beads with a gold-filled hook clasp, laid out on white marble"
+        }
+      ],
+      "placeholder_images": 1,
+      "featured": true,
+      "show": true
+    },
+    {
+      "slug": "simple-arch-earrings",
+      "name": "Simple arch earrings",
+      "style": "Everyday",
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [],
+      "description": "Simple arch earrings, hammered or smooth.",
+      "details": [
+        "Sizes: 1/2 in and 1 in",
+        "Finish: hammered or smooth"
+      ],
+      "price": null,
+      "stripe_link": "",
+      "images": [
+        {
+          "file": "1-front.jpg",
+          "alt": "Two pairs of thin gold arch earrings, one larger and one smaller, on a triangular walnut display"
+        }
+      ],
+      "placeholder_images": 1,
+      "featured": true,
+      "show": true
+    },
+    {
+      "slug": "hoops-with-baubles",
+      "name": "Hoops with baubles",
+      "style": "Everyday",
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [
+        "Beads"
+      ],
+      "description": "Hoop earrings with a few small baubles.",
+      "details": [],
+      "price": null,
+      "stripe_link": "",
+      "images": [
+        {
+          "file": "1-front.jpg",
+          "alt": "Pair of thin gold hoop earrings, each with a small cluster of dark beads, on a triangular walnut display"
+        }
+      ],
+      "placeholder_images": 1,
+      "featured": false,
+      "show": true
+    },
+    {
+      "slug": "wristful-beauty-hammered-bracelet",
+      "name": "Wristful Beauty hammered bracelet",
+      "style": "Everyday",
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [],
+      "description": "A hammered, stackable bracelet.",
+      "details": [
+        "Sizes: S, M, L"
+      ],
+      "price": null,
+      "stripe_link": "",
+      "images": [
+        {
+          "file": "1-front.jpg",
+          "alt": "Hammered gold wire bracelet with a looped hook closure, wrapped around a piece of driftwood"
+        }
+      ],
+      "placeholder_images": 1,
+      "featured": false,
+      "show": true
+    },
+    {
+      "slug": "sapphire-gold-bead-stacking-bracelet",
+      "name": "Sapphire and gold bead stacking bracelet",
+      "style": "Everyday",
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [
+        "Sapphire"
+      ],
+      "description": "A stacking bracelet of sapphire beads with 4mm gold-filled beads.",
+      "details": [
+        "Gold-filled beads: 4mm"
+      ],
+      "price": null,
+      "stripe_link": "",
+      "images": [
+        {
+          "file": "1-front.jpg",
+          "alt": "Bracelet of faceted deep-blue sapphire beads and a row of small gold beads, on grey stone"
+        }
+      ],
+      "placeholder_images": 1,
+      "featured": true,
+      "show": true
+    },
+    {
+      "slug": "circles-bracelet",
+      "name": "Circles bracelet",
+      "style": "Everyday",
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [],
+      "description": "A gold-filled bracelet with interlocking circles.",
+      "details": [
+        "Sizes: S, M, L"
+      ],
+      "price": null,
+      "stripe_link": "",
+      "images": [
+        {
+          "file": "1-front.jpg",
+          "alt": "Textured gold wire bracelet with two interlocking circles at the front, resting on driftwood"
+        }
+      ],
+      "placeholder_images": 1,
+      "featured": false,
+      "show": true
+    },
+    {
+      "slug": "two-inch-gold-hoops",
+      "name": "2-inch gold hoops",
+      "style": "Everyday",
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [],
+      "description": "Two-inch gold-filled hoop earrings.",
+      "details": [
+        "Diameter: 2 in"
+      ],
+      "price": null,
+      "stripe_link": "",
+      "images": [
+        {
+          "file": "1-front.jpg",
+          "alt": "Pair of large, thin gold hoop earrings hanging over a triangular walnut display"
+        }
+      ],
+      "placeholder_images": 1,
+      "featured": false,
+      "show": true
+    },
+    {
+      "slug": "custom-disc-pendant-necklace",
+      "name": "Custom disc pendant necklace",
+      "style": "Everyday",
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [],
+      "description": "A custom gold-filled disc pendant on a chain.",
+      "details": [],
+      "price": null,
+      "stripe_link": "",
+      "images": [
+        {
+          "file": "1-front.jpg",
+          "alt": "Round gold disc pendant on an open-link gold chain, against a white background"
+        }
+      ],
+      "placeholder_images": 1,
+      "featured": false,
+      "show": true
+    },
+    {
       "slug": "placeholder-statement-necklace",
       "name": "Statement necklace (placeholder)",
       "style": "Statement",
-      "metals": ["Sterling silver"],
-      "stones": ["Gemstone beads"],
+      "metals": [
+        "Sterling silver"
+      ],
+      "stones": [
+        "Gemstone beads"
+      ],
       "description": "Placeholder description. Erika will describe this piece: the stones, how it wears, and the feeling behind it.",
-      "details": ["Placeholder detail: length", "Placeholder detail: clasp"],
+      "details": [
+        "Placeholder detail: length",
+        "Placeholder detail: clasp"
+      ],
       "price": null,
       "stripe_link": "",
       "images": [],
       "placeholder_images": 4,
-      "featured": true,
-      "show": true
+      "featured": false,
+      "show": false
     },
     {
       "slug": "placeholder-everyday-earrings",
       "name": "Everyday earrings (placeholder)",
       "style": "Everyday",
-      "metals": ["Gold-filled"],
-      "stones": ["Gemstone"],
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [
+        "Gemstone"
+      ],
       "description": "Placeholder description for an everyday go-to piece.",
-      "details": ["Placeholder detail: drop length", "Placeholder detail: ear wire"],
+      "details": [
+        "Placeholder detail: drop length",
+        "Placeholder detail: ear wire"
+      ],
       "price": null,
       "stripe_link": "",
       "images": [],
       "placeholder_images": 3,
-      "featured": true,
-      "show": true
+      "featured": false,
+      "show": false
     },
     {
       "slug": "placeholder-gemstone-bracelet",
       "name": "Gemstone bracelet (placeholder)",
       "style": "Everyday",
-      "metals": ["Sterling silver"],
-      "stones": ["Gemstone beads"],
+      "metals": [
+        "Sterling silver"
+      ],
+      "stones": [
+        "Gemstone beads"
+      ],
       "description": "Placeholder description.",
-      "details": ["Placeholder detail: size"],
+      "details": [
+        "Placeholder detail: size"
+      ],
       "price": null,
       "stripe_link": "",
       "images": [],
       "placeholder_images": 3,
-      "featured": true,
-      "show": true
+      "featured": false,
+      "show": false
     },
     {
       "slug": "placeholder-stone-pendant",
       "name": "Stone pendant (placeholder)",
       "style": "Statement",
-      "metals": ["Gold-filled"],
-      "stones": ["Natural stone"],
+      "metals": [
+        "Gold-filled"
+      ],
+      "stones": [
+        "Natural stone"
+      ],
       "description": "Placeholder description.",
-      "details": ["Placeholder detail: chain length"],
+      "details": [
+        "Placeholder detail: chain length"
+      ],
       "price": null,
       "stripe_link": "",
       "images": [],
       "placeholder_images": 3,
       "featured": false,
-      "show": true
+      "show": false
     },
     {
       "slug": "placeholder-copper-cuff",
       "name": "Copper piece (placeholder)",
       "style": "Statement",
-      "metals": ["Copper"],
+      "metals": [
+        "Copper"
+      ],
       "stones": [],
       "description": "Placeholder description. Copper is new to the collection.",
-      "details": ["Placeholder detail"],
+      "details": [
+        "Placeholder detail"
+      ],
       "price": null,
       "stripe_link": "",
       "images": [],
       "placeholder_images": 2,
       "featured": false,
-      "show": true
+      "show": false
     },
     {
       "slug": "placeholder-stacking-ring",
       "name": "Stacking ring (placeholder)",
       "style": "Everyday",
-      "metals": ["Sterling silver"],
-      "stones": ["Gemstone"],
+      "metals": [
+        "Sterling silver"
+      ],
+      "stones": [
+        "Gemstone"
+      ],
       "description": "Placeholder description.",
-      "details": ["Placeholder detail: ring size"],
+      "details": [
+        "Placeholder detail: ring size"
+      ],
       "price": null,
       "stripe_link": "",
       "images": [],
       "placeholder_images": 2,
       "featured": false,
-      "show": true
+      "show": false
     }
   ]
 }
