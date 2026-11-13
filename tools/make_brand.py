@@ -17,7 +17,7 @@ Outputs (committed; build.py only references them):
   brand/*@2x.png, brand/*@3x.png            PNG fallbacks (1x = 48 px tall), transparent
   brand/sprig.svg                           line-art leaf sprig (decorative, like the booth banner)
   favicon.svg, favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192.png, icon-512.png
-  images/og-logo.png                        1200x630 share image
+  (the 1200x630 share image is rendered from the live hero by tools/make_og.py)
 """
 import glob, io, os
 import cairosvg
@@ -127,24 +127,6 @@ def main():
     for name, s, fr in (('apple-touch-icon.png', 180, 0.62), ('icon-192.png', 192, 0.56), ('icon-512.png', 512, 0.56)):
         cairosvg.svg2png(bytestring=icon(s, fr, square=True).encode(), write_to=os.path.join(ROOT, name), output_width=s, output_height=s)
 
-    # Share image: ivory ground, slatted light-oak arch, white round sign with the stacked lockup, gold hairline.
-    sw, sh = L['sizes']['stacked']
-    lw = 270; lh = lw * sh / sw
-    slats = ''.join(f'<rect x="{x}" y="0" width="7" height="630" fill="{OAK_D}" opacity=".55"/>' for x in range(400, 800, 16))
-    stacked_inner = L['stacked'](INK).split('</title>', 1)[1].rsplit('</svg>', 1)[0]
-    og = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630"><defs><clipPath id="arch"><path d="M400 630V250A200 200 0 0 1 800 250V630Z"/></clipPath>'
-          f'<clipPath id="a2"><path d="M150 630V330A130 130 0 0 1 410 330V630Z"/></clipPath><clipPath id="a3"><path d="M790 630V330A130 130 0 0 1 1050 330V630Z"/></clipPath></defs>'
-          f'<rect width="1200" height="630" fill="{IVORY}"/>'
-          f'<rect width="1200" height="630" fill="{CREAM}" clip-path="url(#a2)"/><rect width="1200" height="630" fill="{CREAM}" clip-path="url(#a3)"/>'
-          f'<g clip-path="url(#arch)"><rect width="1200" height="630" fill="{OAK}"/>{slats}</g>'
-          f'<circle cx="600" cy="330" r="200" fill="#fff"/><circle cx="600" cy="330" r="186" fill="none" stroke="{GOLD}" stroke-width="2"/>'
-          f'<svg x="{600 - lw / 2:.1f}" y="{330 - lh / 2:.1f}" width="{lw}" height="{lh:.1f}" viewBox="0 0 {sw:.1f} {sh:.1f}">{stacked_inner}</svg>'
-          f'<g transform="translate(830 90) scale(1.6)">{SPRIG.format(c=LEAF).split(">", 1)[1].rsplit("</svg>", 1)[0]}</g>'
-          '</svg>')
-    og = og.replace('<g transform="translate(830 90) scale(1.6)">',
-                    f'<g transform="translate(712 40) scale(1.45)" fill="none" stroke="{LEAF}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">')
-    Image.open(io.BytesIO(cairosvg.svg2png(bytestring=og.encode(), output_width=1200, output_height=630))).convert('RGB') \
-        .save(os.path.join(ROOT, 'images', 'og-logo.png'), optimize=True)
     print('brand assets written')
 
 

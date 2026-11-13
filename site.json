@@ -7,7 +7,7 @@
   "logo": "brand/logo-black.svg",
   "logo_dark": "brand/logo-white.svg",
   "logo_stacked": "brand/logo-stacked-black.svg",
-  "_logo_help": "Logo files (MI monogram from brand/mi-monogram-source.png, drawn by tools/make_brand.py). logo = black horizontal lockup for light areas (header, shown 28-34px tall). logo_stacked = black stacked lockup, MI over MAKERS INSPIRE as on the booth banner (footer, home-page sign). logo_dark = white horizontal lockup for dark areas (none on the site yet). null logo = text wordmark. Favicons, app icons and images/og-logo.png are made by the same tool.",
+  "_logo_help": "Logo files (MI monogram from brand/mi-monogram-source.png, drawn by tools/make_brand.py). logo = black horizontal lockup for light areas (header, shown 28-34px tall). logo_stacked = black stacked lockup, MI over MAKERS INSPIRE as on the booth banner (footer, home-page sign). logo_dark = white horizontal lockup for dark areas (none on the site yet). null logo = text wordmark. Favicons and app icons are made by the same tool; the share image (images/og-booth-v2.png) is rendered from the home-page hero by tools/make_og.py.",
   "price_display": "Price TBD",
   "currency": "USD",
   "checkout_provider": "stripe_payment_links",
