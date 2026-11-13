@@ -78,6 +78,8 @@ Noah's new MI monogram (Nov 2026) is kept as `brand/mi-monogram-source.png` (the
 | `brand/logo-white.svg`, `brand/logo-stacked-white.svg` | White versions for **dark areas** (`logo_dark`; there is no dark section on the site yet). |
 | `brand/mark-black.svg`, `brand/mark-white.svg` | The MI monogram alone. |
 | `brand/*@2x.png`, `brand/*@3x.png` | Transparent PNG fallbacks of each (1x = 48px tall). |
+| `brand/booth.svg` | Home-page hero illustration of the market booth (oak arch with the MI sign and eucalyptus garland, olive trees in baskets, jewelry table). Drawn by `tools/make_booth.py` (same requirements as `make_brand.py`). |
+| `brand/icon-necklace.svg` | Small gold necklace line icon next to "Handmade jewelry". |
 | `brand/sprig.svg` | Line-art leaf sprig (decorative), like the sprig on the booth banner. |
 | `favicon.svg`, `favicon.ico` (16/32/48) | Tab icon: black MI on an ivory rounded square. The 16px version is drawn on whole pixels so it stays legible. |
 | `apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png` + `site.webmanifest` | Home-screen / app icons: black MI on ivory (maskable-safe). |
@@ -86,7 +88,7 @@ Noah's new MI monogram (Nov 2026) is kept as `brand/mi-monogram-source.png` (the
 Alt text is "Makers Inspire". Set `logo` to `null` to go back to the text wordmark.
 
 ## Look and feel
-Styled after the Makers Inspire market booth: warm ivory and white backgrounds, black type, slatted light-oak and cream arches (built in CSS, no photos), eucalyptus line-art, thin gold hairlines and a jute texture. Fonts are self-hosted in `assets/fonts/` (both SIL Open Font License, licence files alongside): **Jost** for all text and **Great Vibes** for the script accents ("Handmade jewelry", "What we make"). Colours and textures are CSS variables at the top of `src/style.css`.
+Styled after the Makers Inspire market booth: warm ivory and white backgrounds, black type, slatted light-oak and cream arches (vector illustration and CSS, no photos), eucalyptus line-art, thin gold hairlines and a jute texture. Fonts are self-hosted in `assets/fonts/` (both SIL Open Font License, licence files alongside): **Jost** for all text and **Great Vibes** for the script accents ("Handmade jewelry", "What we make"). Colours and textures are CSS variables at the top of `src/style.css`.
 
 ## Accessibility
 The site is checked with axe-core (WCAG 2.2 A/AA plus best practices) and Lighthouse.
