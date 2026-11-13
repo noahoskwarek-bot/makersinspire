@@ -83,7 +83,7 @@ Noah's new MI monogram (Nov 2026) is kept as `brand/mi-monogram-source.png` (the
 | `brand/sprig.svg` | Line-art leaf sprig (decorative), like the sprig on the booth banner. |
 | `favicon.svg`, `favicon.ico` (16/32/48) | Tab icon: black MI on an ivory rounded square. The 16px version is drawn on whole pixels so it stays legible. |
 | `apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png` + `site.webmanifest` | Home-screen / app icons: black MI on ivory (maskable-safe). |
-| `images/og-logo.png` | 1200x630 share image (og:image / twitter:image): the booth's round white sign with the stacked logo on a slatted light-oak arch between cream arches. Piece pages use their own first photo. |
+| `images/og-booth-v2.png` | 1200x630 share image (og:image / twitter:image, and the link preview in iMessage etc.): a screenshot of the home-page hero booth (oak arch, round MI sign, cream arches, olive trees in baskets, jute rug), rendered by `tools/make_og.py` (needs `pip install playwright pillow` + Chromium; run after `python3 build.py`). When the hero changes, re-run it under a new file name and update `OG_IMAGE` in `build.py` so apps fetch the new image. Piece pages use their own first photo. `images/og-logo.png` is the previous share image, kept only so old links don't 404. |
 
 Alt text is "Makers Inspire". Set `logo` to `null` to go back to the text wordmark.
 

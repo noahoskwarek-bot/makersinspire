@@ -269,14 +269,17 @@ def css():
     return _CSS
 
 
-def page(site, path, title, desc, body, og_image='/images/og-logo.png', extra_head=''):
+OG_IMAGE = '/images/og-booth-v2.png'  # 1200x630 share image rendered from the hero by tools/make_og.py; new name = social apps refetch
+
+
+def page(site, path, title, desc, body, og_image=OG_IMAGE, extra_head=''):
     url = site['base_url'] + path
     full_title = title if title == site['name'] else f'{title} · {site["name"]}'
     nav = ''.join(f'<li><a href="{h}"{" aria-current=\"page\"" if path.startswith(h) else ""}>{e(t)}</a></li>' for h, t in NAV)
     img = site['base_url'] + og_image
-    is_logo = og_image == '/images/og-logo.png'
+    is_logo = og_image == OG_IMAGE
     og_size = '\n  <meta property="og:image:width" content="1200">\n  <meta property="og:image:height" content="630">' if is_logo else ''
-    img_alt = site['name'] + (' logo' if is_logo else '')
+    img_alt = site['name'] + (' booth with the round MI logo sign' if is_logo else '')
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -488,7 +491,7 @@ def piece_page(site, p, pieces):
     elif not first['placeholder'] and first['src'].startswith('/') and first['src'].lower().endswith(('.jpg', '.jpeg', '.png')):
         og = first['src']
     else:
-        og = '/images/og-logo.png'
+        og = OG_IMAGE
     return page(site, f'/shop/{p["slug"]}/', p['name'], f'{p["name"]}: one-of-a-kind artisan jewelry. {materials(p)}.', body, og_image=og)
 
 
@@ -647,7 +650,7 @@ def outputs():
             if im['placeholder']:
                 files[im['src'].lstrip('/')] = placeholder_svg(p, k, n)
     files['site.webmanifest'] = webmanifest(site)
-    bins = {}  # logo, icons and images/og-logo.png are made by tools/make_brand.py (committed files)
+    bins = {}  # logo and icons are made by tools/make_brand.py, the share image by tools/make_og.py (committed files)
     return files, bins
 
 
