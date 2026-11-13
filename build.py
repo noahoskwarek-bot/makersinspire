@@ -368,8 +368,10 @@ def home(site, pieces, services):
         + ('<span class="soon">Coming soon</span>' if soon else f'<p>{e(sm)}</p>')
         + (f'<a class="more" href="{e(ln)}">{e(lb)}</a>' if ln else '') + '</li>'
         for k, (n, sm, ln, lb, soon) in enumerate(offer))
+    sign = logo_img(site, 'logo_stacked', 'sign-logo', 120)
+    sign = sign.replace(f'alt="{e(site["name"])}"', 'alt=""') if sign else ''
     body = f'''    <section class="hero">
-      <figure class="booth"><img src="/brand/booth.svg" width="800" height="560" fetchpriority="high" alt="Illustration of the {e(site["name"])} market booth: the round MI sign on a light-oak arch draped with eucalyptus, potted olive trees in woven baskets, and a linen-draped table with necklaces on display busts, a rack of gold chains, trays of rings and earrings, and a vase of white flowers."></figure>
+      <div class="booth" aria-hidden="true"><span class="arch arch-l"></span><span class="arch arch-r"></span><span class="arch arch-oak"></span><span class="sign">{sign}</span><span class="rug"></span><span class="plant plant-l"></span><span class="plant plant-r"></span></div>
       <div class="hero-copy">
         <p class="script">Handmade jewelry<span class="jewel-icon" aria-hidden="true"></span></p>
         <p class="eyebrow">One-of-a-kind artisan jewelry</p>
