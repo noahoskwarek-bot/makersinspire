@@ -69,19 +69,24 @@ Both forms are configured from `site.json`:
 Add entries to `services.json`. `status` is `"available"` or `"coming_soon"` (shows a "Coming soon" tag). `link` and `link_label` are optional (e.g. `/commissions/`).
 
 ## Logo, icons and share image
-Noah's logo file is kept as `brand/logo-original.jpg`. `tools/make_brand.py` traces it to clean SVGs and writes every derived file (run it only if the original changes; it needs `pip install vtracer cairosvg pillow numpy`, e.g. in a venv):
+Noah's new MI monogram (Nov 2026) is kept as `brand/mi-monogram-source.png` (the earlier logo stays in `brand/logo-original.jpg` for reference). The monogram is pure geometry, so `tools/make_brand.py` redraws it as exact polygons measured from the source and sets the wordmark "MAKERS INSPIRE" in Jost, widely tracked and converted to outlines, then writes every derived file. Run it only if the logo changes; it needs `pip install cairosvg pillow numpy fonttools` and the Jost variable TTF (`JOST_TTF=/path/to/Jost-VariableFont_wght.ttf`).
 
 | File | Use |
 |---|---|
-| `brand/logo-black.svg` | Black (#111) lockup, transparent. **Header** (40px tall, 46px on desktop) and **footer** (34px), both light. `site.json` → `logo`. |
-| `brand/logo-white.svg` | Silver-gradient MI mark + white wordmark, transparent, for **dark areas**. `site.json` → `logo_dark` (used in the share image; there is no dark section on the site yet). |
-| `brand/mark-black.svg`, `brand/mark-white.svg`, `brand/mark-silver.svg` | The MI square alone. |
-| `brand/*@2x.png`, `brand/*@3x.png` | PNG fallbacks of each (1x = 48px tall). |
-| `favicon.svg`, `favicon.ico` (16/32/48) | Tab icon: silver MI on black. The 16px version is redrawn on whole pixels so it stays legible. |
-| `apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png` + `site.webmanifest` | Home-screen / app icons: silver MI on black (maskable-safe). |
-| `images/og-logo.png` | 1200x630 share image (og:image / twitter:image): logo centred on black with a thin stone-and-metal accent line. Piece pages use their own first photo once real photos exist. |
+| `brand/logo-black.svg` | Horizontal lockup (MI + MAKERS INSPIRE), black, transparent. **Header** (28 to 34px tall). `site.json` → `logo`. |
+| `brand/logo-stacked-black.svg` | Stacked lockup, MI over MAKERS INSPIRE as on the booth banner. **Footer** and the round sign in the home-page hero. `site.json` → `logo_stacked`. |
+| `brand/logo-white.svg`, `brand/logo-stacked-white.svg` | White versions for **dark areas** (`logo_dark`; there is no dark section on the site yet). |
+| `brand/mark-black.svg`, `brand/mark-white.svg` | The MI monogram alone. |
+| `brand/*@2x.png`, `brand/*@3x.png` | Transparent PNG fallbacks of each (1x = 48px tall). |
+| `brand/sprig.svg` | Line-art leaf sprig (decorative), like the sprig on the booth banner. |
+| `favicon.svg`, `favicon.ico` (16/32/48) | Tab icon: black MI on an ivory rounded square. The 16px version is drawn on whole pixels so it stays legible. |
+| `apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png` + `site.webmanifest` | Home-screen / app icons: black MI on ivory (maskable-safe). |
+| `images/og-logo.png` | 1200x630 share image (og:image / twitter:image): the booth's round white sign with the stacked logo on a slatted light-oak arch between cream arches. Piece pages use their own first photo. |
 
-The trace matches the original closely (letter shapes and spacing overlap ~99%). The silver is a measured linear gradient (#efefef → #989898). Alt text is "Makers Inspire". Set `logo` to `null` to go back to the text wordmark.
+Alt text is "Makers Inspire". Set `logo` to `null` to go back to the text wordmark.
+
+## Look and feel
+Styled after the Makers Inspire market booth: warm ivory and white backgrounds, black type, slatted light-oak and cream arches (built in CSS, no photos), eucalyptus line-art, thin gold hairlines and a jute texture. Fonts are self-hosted in `assets/fonts/` (both SIL Open Font License, licence files alongside): **Jost** for all text and **Great Vibes** for the script accents ("Handmade jewelry", "What we make"). Colours and textures are CSS variables at the top of `src/style.css`.
 
 ## Accessibility
 The site is checked with axe-core (WCAG 2.2 A/AA plus best practices) and Lighthouse.

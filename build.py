@@ -236,20 +236,20 @@ def logo_img(site, key, cls, height):
 
 
 def wordmark(site):
-    # LOGO SLOT: site.json "logo" (black logo, light header). null = text wordmark.
-    return logo_img(site, 'logo', 'logo', 40) or f'<span class="wordmark">{e(site["name"])}</span>'
+    # LOGO SLOT: site.json "logo" (black MI + MAKERS INSPIRE lockup, light header). null = text wordmark.
+    return logo_img(site, 'logo', 'logo', 34) or f'<span class="wordmark">{e(site["name"])}</span>'
 
 
 def foot_brand(site):
-    # The footer is light, so it uses the black logo too. (Use logo_img(site, 'logo_dark', ...) on a dark background.)
-    img = logo_img(site, 'logo', 'foot-logo', 34)
+    # The footer is light, so it uses the black stacked lockup (as on the booth banner); falls back to the header logo.
+    img = logo_img(site, 'logo_stacked', 'foot-logo', 58) or logo_img(site, 'logo', 'foot-logo', 34)
     return f'<p class="foot-brand">{img}</p>' if img else f'<p class="foot-brand">{e(site["name"])}</p>'
 
 
 def webmanifest(site):
     return json.dumps({
         'name': site['name'], 'short_name': site['name'], 'start_url': '/', 'display': 'standalone',
-        'background_color': '#000000', 'theme_color': '#ffffff',
+        'background_color': '#f8f4ec', 'theme_color': '#fbf8f2',
         'icons': [{'src': '/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any maskable'},
                   {'src': '/icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any maskable'}],
     }, indent=2) + '\n'
@@ -297,11 +297,12 @@ def page(site, path, title, desc, body, og_image='/images/og-logo.png', extra_he
   <meta name="twitter:description" content="{e(desc)}">
   <meta name="twitter:image" content="{e(img)}">
   <meta name="twitter:image:alt" content="{e(img_alt)}">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#fbf8f2">
   <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
+  <link rel="preload" href="/assets/fonts/jost-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>{css()}</style>{extra_head}
 </head>
 <body>
@@ -359,12 +360,25 @@ def price(p, site):
 
 def home(site, pieces, services):
     feat = [p for p in pieces if p.get('featured')][:3] or pieces[:3]
-    svc = ''.join(f'<li><strong>{e(s["name"])}</strong>{" <span class=\"soon\">Coming soon</span>" if s["status"] == "coming_soon" else ""}</li>' for s in services)
+    # What we make: the shop first (handmade jewelry, as on the booth banner), then every entry in services.json.
+    offer = [('Handmade jewelry', 'One-of-a-kind pieces in sterling silver and gold-filled, with gemstone beads and stones.', '/shop/', 'Shop the collection', False)]
+    offer += [(s['name'], s.get('summary', ''), s.get('link'), s.get('link_label') or 'Learn more', s['status'] == 'coming_soon') for s in services]
+    svc = ''.join(
+        f'<li{" class=\"oak\"" if k == 1 else ""}><h3>{e(n)}</h3>'
+        + ('<span class="soon">Coming soon</span>' if soon else f'<p>{e(sm)}</p>')
+        + (f'<a class="more" href="{e(ln)}">{e(lb)}</a>' if ln else '') + '</li>'
+        for k, (n, sm, ln, lb, soon) in enumerate(offer))
+    sign = logo_img(site, 'logo_stacked', 'sign-logo', 120)
+    sign = sign.replace(f'alt="{e(site["name"])}"', 'alt=""') if sign else ''
     body = f'''    <section class="hero">
-      <p class="eyebrow">One-of-a-kind artisan jewelry</p>
-      <h1>{e(site["tagline"])}</h1>
-      <p class="lede">Sterling silver and gold-filled pieces with gemstone beads and stones. Statement pieces and everyday favorites, each one made to be yours.</p>
-      <div class="actions"><a class="btn primary" href="/shop/">Shop the collection</a><a class="btn" href="/commissions/">Commission a piece</a></div>
+      <div class="booth" aria-hidden="true"><span class="arch arch-l"></span><span class="arch arch-r"></span><span class="arch arch-oak"></span><span class="leaf leaf-l"></span><span class="leaf leaf-r"></span><span class="sign">{sign}</span><span class="rug"></span></div>
+      <div class="hero-copy">
+        <p class="script">Handmade jewelry</p>
+        <p class="eyebrow">One-of-a-kind artisan jewelry</p>
+        <h1>{e(site["tagline"])}</h1>
+        <p class="lede">Sterling silver and gold-filled pieces with gemstone beads and stones. Statement pieces and everyday favorites, each one made to be yours.</p>
+        <div class="actions"><a class="btn primary" href="/shop/">Shop the collection</a><a class="btn" href="/commissions/">Commission a piece</a></div>
+      </div>
     </section>
     <section class="block">
       <div class="block-head"><h2>Current pieces</h2><a class="more" href="/shop/">View all</a></div>
@@ -378,15 +392,16 @@ def home(site, pieces, services):
         <p class="ph">{ph_note()} A short welcome from {e(site.get("maker_name") or "the maker")} goes here.</p>
         <a class="more" href="/about/">Read our story</a>
       </div>
-      <div class="soft-panel">
+      <div class="soft-panel oak">
         <h2>Made for your story</h2>
         <p>Have an idea, a favorite stone, or an occasion to mark? Commission a one-of-a-kind piece.</p>
         <a class="btn" href="/commissions/">Start a commission</a>
       </div>
     </section>
+    <div class="sprig-rule" aria-hidden="true"><span></span></div>
     <section class="block">
-      <div class="block-head"><h2>Services</h2><a class="more" href="/services/">See services</a></div>
-      <ul class="svc-mini">{svc}</ul>
+      <div class="block-head center"><p class="script">What we make</p><h2>Services</h2><a class="more" href="/services/">See services</a></div>
+      <ul class="offer">{svc}</ul>
     </section>'''
     return page(site, '/', site['name'], 'One-of-a-kind artisan jewelry in sterling silver and gold-filled, with gemstones and stones. Heirloom meets a night out.', body)
 
