@@ -250,6 +250,8 @@ input:focus,textarea:focus{outline:2px solid var(--ink);outline-offset:1px;borde
 .foot-nav a{color:var(--muted);display:inline-flex;min-height:44px;align-items:center;padding:0 10px;font-size:.76rem;letter-spacing:.2em;text-transform:uppercase}
 @media (min-width:760px){.foot-nav{max-width:none}}
 .fine{font-size:.78rem;letter-spacing:.06em}
+.foot-credit{font-size:.7rem;letter-spacing:.04em;margin-top:2px;color:#746e67}
+.foot-credit a{color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;display:inline-flex;align-items:center;min-height:44px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}.card a:hover .card-img img{transform:none}}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .direct{font-size:1.05rem;margin:-6px 0 22px}

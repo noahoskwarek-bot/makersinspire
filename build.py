@@ -324,6 +324,7 @@ def page(site, path, title, desc, body, og_image=OG_IMAGE, extra_head=''):
     <p>One-of-a-kind artisan jewelry.</p>
     <nav aria-label="Footer"><ul class="foot-nav">{nav.replace(' aria-current="page"', '')}</ul></nav>
     <p class="fine">© {BUILD_DATE[:4]} {e(site["name"])}</p>
+    <p class="foot-credit"><a href="https://noahsarcmedia.com" target="_blank" rel="noopener">Site by Noah's Arc Media</a></p>
   </footer>
   <script src="/assets/site.js" defer></script>
 </body>
